@@ -26,8 +26,10 @@ print(N)
 latLong = pd.read_excel('demand_data.xlsx', index_col = 0, usecols = 'B:V', skiprows = 3, nrows = 3)
 demand  = pd.read_excel('demand_data.xlsx', index_col = 0, usecols = 'B:V', skiprows = 11, nrows = 20).values
 
+ICAO = latLong.iloc[0, :].to_list()
 latitude = latLong.iloc[1, :].to_numpy()
 longitude = latLong.iloc[2, :].to_numpy()
+print(ICAO)
 
 demandLn = np.array([])
 popLn = np.array([])
@@ -107,5 +109,5 @@ for i in range(N):
 
 print(demand2020_forecast)
 
-demand2020_forecast_df = pd.DataFrame(demand2020_forecast)
+demand2020_forecast_df = pd.DataFrame(demand2020_forecast, index = ICAO, columns = ICAO)
 demand2020_forecast_df.to_excel('demand2020_forecast.xlsx')

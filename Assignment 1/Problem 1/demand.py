@@ -11,6 +11,8 @@ def calculateDistance(lat1, lat2, long1, long2):
     distance = 6371 * deltaSigma
     return distance
 
+def check_symmetric(a, rtol=1e-05, atol=1e-08):
+    return np.allclose(a, a.T, rtol=rtol, atol=atol)
 
 fuelCost = 1.42
 
@@ -19,7 +21,8 @@ gdp = pd.read_excel('general_data.xlsx', usecols = 'E:G', skiprows = 2)
 N = gdp.shape[0]
 print(N)
 
-print(calculateDistance(52.379189, 52.520008, 4.899431, 13.404954))                  # verified using online calculator
+#print(calculateDistance(52.379189, 52.520008, 4.899431, 13.404954))                  # verified using online calculator
+
 latLong = pd.read_excel('demand_data.xlsx', index_col = 0, usecols = 'B:V', skiprows = 3, nrows = 3)
 demand  = pd.read_excel('demand_data.xlsx', index_col = 0, usecols = 'B:V', skiprows = 11, nrows = 20).values
 
@@ -62,11 +65,10 @@ b1 = p[1]
 b2 = p[2]
 b3 = p[3]
 
-
 # verification
 demand_computed = np.exp(kLn+b1*popLn + b2*GDPLn + b3*distLn)
 demand_data     = np.exp(demandLn)
-
+print("Length of demand computed ", len(demand_computed))
 demand_error    = sum(abs(demand_computed - demand_data))/len(demand_computed)
 print("Average error ", demand_error)
 
@@ -86,7 +88,7 @@ for i in range(N):
       x = np.vstack((len(gdp2015)*[2015], len(gdp2015)*[2018]))
 
       y = np.vstack((gdp2015,  gdp2018))
-      coeff = np.polyfit(x[:,i], y[:,i], 1)
+      coeff = np.polyfit(x[:, i], y[:,i], 1)
       eq = np.poly1d(coeff)
       gdp2020 = np.append(gdp2020, eq(2020))
 
@@ -96,5 +98,14 @@ for i in range(N):
       pop2020 = np.append(pop2020, eq(2020))
 
 
+demand2020_forecast = np.zeros((N, N))
 
+for i in range(N):
+    for j in range(N):
+        if i!=j:
+            demand2020_forecast[i, j] = k*pow(pop2020[i]*pop2020[j], b1)*pow(gdp2020[i]*gdp2020[j], b2)/pow(fuelCost*calculateDistance(latitude[i], latitude[j], longitude[i], longitude[j]), b3)
 
+print(demand2020_forecast)
+
+demand2020_forecast_df = pd.DataFrame(demand2020_forecast)
+demand2020_forecast_df.to_excel('demand2020_forecast.xlsx')

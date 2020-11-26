@@ -2,6 +2,7 @@ from math import sqrt, asin, sin, cos, pow, pi
 import pandas as pd
 import numpy as np
 from scipy.linalg import lstsq
+import matplotlib.pyplot as plt
 
 def calculateDistance(lat1, lat2, long1, long2):
     t1 = pow(sin((lat1-lat2)/2*(pi/180)), 2)
@@ -43,26 +44,37 @@ for i in range(N):
             GDPLn = np.append(GDPLn, np.log(gdp2015[i] * gdp2015[j]))
             distLn = np.append(distLn, - np.log(fuelCost * calculateDistance(latitude[i], latitude[j], longitude[i], longitude[j])))
 
-print(len(demandLn))
 
 A = np.ones((len(demandLn), 4))
 A[:, 1] = popLn
 A[:, 2] = GDPLn
 A[:, 3] = distLn
-# print(A)
+
 p, res, rnk, s  = lstsq(A, demandLn)
-print(p) # p[0] is ln(k), p[1] is b1, p[2] is b2, p[3] is b3
+print('res is ', res)
 print('k = ', np.exp(p[0]))
 print('b1 = ', p[1])
 print('b2 = ', p[2])
 print('b3 = ', p[3])
+kLn = p[0]
+k = np.exp(p[0])
+b1 = p[1]
+b2 = p[2]
+b3 = p[3]
 
 
 # verification
-demand_computed = np.exp(p[0]+p[1]*popLn + p[2]*GDPLn + p[3]*distLn)
+demand_computed = np.exp(kLn+b1*popLn + b2*GDPLn + b3*distLn)
 demand_data     = np.exp(demandLn)
 
-demand_error    = sum(abs(demand_computed - demand_data))
+demand_error    = sum(abs(demand_computed - demand_data))/len(demand_computed)
+print("Average error ", demand_error)
+
+# plot prediction and real
+x = range(len(demand_computed))
+plt.scatter(x, demand_computed, color= 'red')
+plt.scatter(x, demand_data, color='blue')
+plt.show()
 
 
 # 2020 data forecast

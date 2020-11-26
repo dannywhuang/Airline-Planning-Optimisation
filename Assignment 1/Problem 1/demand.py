@@ -107,7 +107,6 @@ for i in range(N):
         if i!=j:
             demand2020_forecast[i, j] = k*pow(pop2020[i]*pop2020[j], b1)*pow(gdp2020[i]*gdp2020[j], b2)/pow(fuelCost*calculateDistance(latitude[i], latitude[j], longitude[i], longitude[j]), b3)
 
-print(demand2020_forecast)
 
-demand2020_forecast_df = pd.DataFrame(demand2020_forecast, index = ICAO, columns = ICAO)
+demand2020_forecast_df = pd.DataFrame(np.round(demand2020_forecast, 1), index = ICAO, columns = ICAO)
 demand2020_forecast_df.to_excel('demand2020_forecast.xlsx')

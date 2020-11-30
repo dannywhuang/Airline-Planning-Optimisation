@@ -1,7 +1,10 @@
 from math import sqrt, asin, sin, cos, pow, pi
 import numpy as np
 from scipy.linalg import lstsq
+from scipy.stats import norm
 import demand_globalData as globals
+import matplotlib.pyplot as plt
+
 
 def calculateDistance(origin,destination):
 
@@ -125,6 +128,100 @@ def gravityModel(dataSet):
                 demand = 0
                 demand_lst = np.append(demand_lst, demand)
 
+    demand_lst = demand_lst.astype(int)
+    # demand_lst = np.round(demand_lst,1)
     demand_lst = np.reshape(demand_lst, (numberOfAirports,numberOfAirports))
 
     return demand_lst
+
+
+def linearCityDataInterp(targetYear, dataSet1, dataSet2):
+
+    targetYear = int(targetYear)
+    year1 = int(dataSet1['year'])
+    year2 = int(dataSet2['year'])
+
+    cities_lst = dataSet1['city']
+    numberOfCities = len(cities_lst)
+
+    popYear1_lst = dataSet1['pop']
+    popYear2_lst = dataSet2['pop']
+    GDPyear1_lst = dataSet1['GDP']
+    GDPyear2_lst = dataSet2['GDP']
+
+    # 2020 data forecast
+    GDPtarget_lst = np.array([])
+    popTarget_lst = np.array([])
+
+    for city in range(numberOfCities):
+
+        x = np.vstack((len(GDPyear1_lst)*[year1], len(GDPyear1_lst)*[year2]))
+
+        y = np.vstack((GDPyear1_lst,  GDPyear2_lst))
+        coeff = np.polyfit(x[:, city], y[:, city], 1)
+        eq = np.poly1d(coeff)
+        GDPtarget_lst = np.append(GDPtarget_lst, eq(targetYear))
+
+        y2 = np.vstack((popYear1_lst, popYear2_lst))
+        coeff = np.polyfit(x[:, city], y2[:, city], 1)
+        eq = np.poly1d(coeff)
+        popTarget_lst = np.append(popTarget_lst, eq(targetYear))
+
+    return popTarget_lst, GDPtarget_lst
+
+
+def VVgravityModel(comparisonData):
+
+    year           = comparisonData['year']
+    demandData     = comparisonData['demand']
+    demandComputed = gravityModel(comparisonData)
+
+    numberOfAirports = len(comparisonData['city'])
+    demandData_lst = np.reshape(demandData,(1,numberOfAirports*numberOfAirports))[0]
+    demandComputed_lst = np.reshape(demandComputed,(1,numberOfAirports*numberOfAirports))[0]
+
+    error = demandComputed_lst - demandData_lst
+    # error = error[0]
+    # error = error[error<200]
+
+    mu, std = norm.fit(error)
+
+    plt.figure('Gravity Model Error')
+    plt.subplot(2,1,1)
+    plt.title('Histogram of the error of the '+str(year)+' demand')
+    plt.hist(error, 100, edgecolor='k')
+
+    xmin, xmax = plt.xlim()
+
+    plt.subplot(2,1,2)
+    x = np.linspace(-150, 150, 100)
+    p = norm.pdf(x, mu, std)
+    plt.plot(x, p, 'k')
+    normDistrTitle = '$\mu$ ' + str(round(mu,2)) + ', $\sigma$ ' + str(round(std,2))
+    plt.title(normDistrTitle)
+    plt.grid()
+    plt.xlabel('Error - Demand')
+
+    return
+
+
+def VVdemandForecast(forecastData, initialData):
+
+    yearInit        = initialData['year']
+    yearForecast    = forecastData['year']
+    demandInit      = initialData['demand']
+    demandForecast  = forecastData['demand']
+
+    numberOfAirports = len(initialData['city'])
+    demandData_lst = np.reshape(demandInit,(1,numberOfAirports * numberOfAirports))[0]
+    demandForecast_lst = np.reshape(demandForecast,(1,numberOfAirports * numberOfAirports))[0]
+
+    demandDifference = demandForecast_lst - demandData_lst
+
+    plt.figure('Verification '+str(yearForecast)+' demand forecast compared to '+str(yearInit))
+    plt.title('Change in demand in '+str(yearForecast)+' compared to '+str(yearInit))
+    x = range(numberOfAirports * numberOfAirports)
+    plt.stem(x,demandDifference,'b*')
+
+    return
+

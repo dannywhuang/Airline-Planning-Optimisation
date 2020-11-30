@@ -42,20 +42,35 @@ def loadData():
     # Add data to created dataframes
     # ==============================
 
+    # Define varing dataframes for the past and future years
     data2015 = {}
     data2018 = {}
-    networkData = {}
+    data2020 = {}
+    airlineData = {}
 
+    data2015['year']    = '2015'
     data2015['city']    = cities
     data2015['country'] = countries
     data2015['pop']     = pop2015
     data2015['GDP']     = gdp2015
     data2015['demand']  = demand2015
 
+    data2018['year']    = '2018'    
     data2018['city']    = cities
     data2018['country'] = countries
     data2018['pop']     = pop2018
     data2018['GDP']     = gdp2018
+
+    data2020['year']    = '2020'
+    data2020['city']    = cities
+    data2020['country'] = countries
+
+    airlineData['2015'] = data2015
+    airlineData['2018'] = data2018
+    airlineData['2020'] = data2020
+
+    # Define constant dataframe over all current and future years
+    networkData = {}
 
     networkData['city']    = cities
     networkData['country'] = countries
@@ -64,11 +79,6 @@ def loadData():
     networkData['long']    = longitude
     networkData['rnw']     = runway
     networkData['slots']   = slots
-
-    airlineData = {}
-
-    airlineData['2015'] = data2015
-    airlineData['2018'] = data2018
 
     globals.networkData = networkData
 

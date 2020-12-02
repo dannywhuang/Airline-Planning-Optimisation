@@ -4,62 +4,77 @@ import demand_loadData as load
 import demand_functions as funct
 import demand_globalData as globals
 import matplotlib.pyplot as plt
+import numpy as np
 
 demand.demandForecast()
 
-airlineData = globals.airlineData
-networkData = globals.networkData
+airlineData  = globals.airlineData
+networkData  = globals.networkData
+aircraftData = ...
 
-print()
+YearToAnalyze = '2020'
 
+airlineData = airlineData[YearToAnalyze]
+q = airlineData['demand']
 
+airports_lst = np.array(networkData['city'])
+numberOfAirports = len(airports_lst)
 
+aircraft_lst = np.array(networkData['AC type'])
+numberOfAirports = len(aircraft_lst)
 
+g = np.ones(numberOfAirports)
+g[airports_lst=='Paris'] = 0
 
+CXk_lst = aircraft['CXk']
 
-
-
-
-# Data
-Airports = ['A1','A2','A3']
-airports = range(len(Airports))
-CASK = 0.12
-LF = 0.75
-s = 120
-sp = 870
-LTO = 20/60
-BT = 10
-AC = 2
-y = 0.18  # yield
-q = [[0, 1000, 200],
-          [1000, 0, 300],
-          [200, 300, 0]]
-distance = [[0, 2236, 3201],
-          [2236, 0, 3500],
-          [3201, 3500, 0]]
 
 # Start modelling optimization problem
-m = Model('practice')
+m = Model('Network and Fleet Development')
 x = {}
+w = {}
 z = {}
-for i in airports:
-    for j in airports:
-        x[i,j] = m.addVar(obj = y*distance[i][j],lb=0,
-                           vtype=GRB.INTEGER)
-        z[i,j] = m.addVar(obj = -CASK*distance[i][j]*s, lb=0,
-                           vtype=GRB.INTEGER)
+ACk = {}
+
+# Iterate over itineraries
+for i in range(numberOfAirports):
+    for j in range(numberOfAirports):
+        origin = airports_lst[i]    # To check the current airport origin
+        dest   = airports_lst[j]    # To check the current airport destionation
+
+        distance = funct.calculateDistance(origin, dest)
+
+        x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
+        w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
+
+        # Iterate over AC types
+        for k in range(numberOfAircraft):
+            aircraftType = aircraft_lst[k]  # To check the current aircraft type in the iteration
+
+            CXk = CXk_lst[k]    # fixed operating cost
+            cTk = cTk[i,j][k]   # time based costs
+            cfk = ... * distance# fuel cost
+            spk = spk_lst[k]    # speed of aircraft
+            CLk = ...
+
+            z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
+            ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
 
 m.update()
 m.setObjective(m.getObjective(), GRB.MAXIMIZE)  # The objective is to maximize revenue
 
-for i in airports:
-    for j in airports:
-        m.addConstr(x[i,j], GRB.LESS_EQUAL, q[i][j]) #C1
-        m.addConstr(x[i, j], GRB.LESS_EQUAL, z[i,j]*s*LF) #C2
-        m.addConstr(quicksum(z[i,j] for j in airports), GRB.EQUAL, quicksum(z[j, i] for j in airports)) #C3
+# Define constraints
+for i in range(numberOfAirports):
+    for j in range(numberOfAirports):
+        origin = airports_lst[i]    # To check the current airport origin
+        dest   = airports_lst[j]    # To check the current airport destionation
 
-        m.addConstr(quicksum(quicksum((distance[i][j]/sp+LTO)*z[i,j] for i in airports) for j in airports),
-            GRB.LESS_EQUAL, BT*AC) #C4
+
+        m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) #C1
+        m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) #C2
+        ...
+        ...
+        ...
 
 
 m.update()

@@ -3,6 +3,7 @@ import demand
 import demand_loadData as load
 import demand_functions as funct
 import demand_globalData as globals
+import aircraft_loadData as aircraftLoad
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -10,24 +11,24 @@ demand.demandForecast()
 
 airlineData  = globals.airlineData
 networkData  = globals.networkData
-aircraftData = ...
+aircraftData = aircraftLoad.loadData()
+
+
 
 YearToAnalyze = '2020'
 
 airlineData = airlineData[YearToAnalyze]
 q = airlineData['demand']
 
+
+
 airports_lst = np.array(networkData['city'])
 numberOfAirports = len(airports_lst)
-
-aircraft_lst = np.array(networkData['AC type'])
-numberOfAirports = len(aircraft_lst)
 
 g = np.ones(numberOfAirports)
 g[airports_lst=='Paris'] = 0
 
-CXk_lst = aircraft['CXk']
-
+numberOfAircraft = len(aircraftData.columns)
 
 # Start modelling optimization problem
 m = Model('Network and Fleet Development')
@@ -49,13 +50,14 @@ for i in range(numberOfAirports):
 
         # Iterate over AC types
         for k in range(numberOfAircraft):
-            aircraftType = aircraft_lst[k]  # To check the current aircraft type in the iteration
+            singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
 
-            CXk = CXk_lst[k]    # fixed operating cost
-            cTk = cTk[k]   # time based costs
-            cfk = ... * distance# fuel cost
-            spk = spk_lst[k]    # speed of aircraft
-            CLk = ...
+            # CXk = aircraftData.loc[ '' ,  ]     # fixed operating cost
+            cTk = singleAircraftData['Time cost parameter']   # time based costs
+            cfk = singleAircraftData['Fuel cost parameter'] * distance# fuel cost
+            spk = singleAircraftData['Speed']    # speed of aircraft
+            CLk = singleAircraftData['Weekly lease cost']
+            CXk = singleAircraftData['Fixed operating cost']
 
             z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
             ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
@@ -74,7 +76,7 @@ for i in range(numberOfAirports):
 
         m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) # C1
         m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) # C2
-        for k in range(aircraft_lst):
+        for k in range(numberOfAircraft):
             m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in airports_lst) + quicksum(w[i, j]*(1-g[i])
                         for i in airports_lst), GRB.LESS_EQUAL, quicksum(z[j, i][k]*s[k]*globals.LF
                                                                             for k in aircraftType))  # C3

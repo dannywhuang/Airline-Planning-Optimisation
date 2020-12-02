@@ -40,7 +40,7 @@ ACk = {}
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
         origin = airports_lst[i]    # To check the current airport origin
-        dest   = airports_lst[j]    # To check the current airport destionation
+        dest   = airports_lst[j]    # To check the current airport destination
 
         distance = funct.calculateDistance(origin, dest)
 
@@ -52,13 +52,15 @@ for i in range(numberOfAirports):
             aircraftType = aircraft_lst[k]  # To check the current aircraft type in the iteration
 
             CXk = CXk_lst[k]    # fixed operating cost
-            cTk = cTk[i,j][k]   # time based costs
+            cTk = cTk[k]   # time based costs
             cfk = ... * distance# fuel cost
             spk = spk_lst[k]    # speed of aircraft
             CLk = ...
 
             z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
             ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
+
+
 
 m.update()
 m.setObjective(m.getObjective(), GRB.MAXIMIZE)  # The objective is to maximize revenue
@@ -67,15 +69,24 @@ m.setObjective(m.getObjective(), GRB.MAXIMIZE)  # The objective is to maximize r
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
         origin = airports_lst[i]    # To check the current airport origin
-        dest   = airports_lst[j]    # To check the current airport destionation
+        dest   = airports_lst[j]    # To check the current airport destination
+        distance = funct.calculateDistance(origin, dest)
 
+        m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) # C1
+        m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) # C2
+        for k in range(aircraft_lst):
+            m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in airports_lst) + quicksum(w[i, j]*(1-g[i])
+                        for i in airports_lst), GRB.LESS_EQUAL, quicksum(z[j, i][k]*s[k]*globals.LF
+                                                                            for k in aircraftType))  # C3
 
-        m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) #C1
-        m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) #C2
-        ...
-        ...
-        ...
+            m.addConstr(quicksum(z[i, j][k] for j in airports_lst), GRB.EQUAL, quicksum(z[j, i][k] for j in
+                                                                                        airports_lst))  # C4
 
+            m.addConstr(quicksum(quicksum((distance / spk_lst[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in
+                        airports_lst) for j in airports_lst), GRB.LESS_EQUAL, BT[k] * AC[k])  # C5
+
+            m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if distance <= R[k] else 0  )  # c6
+            m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if Run[k] <= Run_a[i] and Run[k] <= Run_a[j] else 0)   # c7
 
 m.update()
 # m.write('test.lp')

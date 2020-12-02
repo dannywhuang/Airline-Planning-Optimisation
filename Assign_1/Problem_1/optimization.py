@@ -40,27 +40,28 @@ ACk = {}
 # Iterate over itineraries
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
-        origin = airports_lst[i]    # To check the current airport origin
-        dest   = airports_lst[j]    # To check the current airport destination
+        if i!=j:
+            origin = airports_lst[i]    # To check the current airport origin
+            dest   = airports_lst[j]    # To check the current airport destination
 
-        distance = funct.calculateDistance(origin, dest)
+            distance = funct.calculateDistance(origin, dest)
 
-        x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
-        w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
+            x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
+            w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
 
-        # Iterate over AC types
-        for k in range(numberOfAircraft):
-            singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
+            # Iterate over AC types
+            for k in range(numberOfAircraft):
+                singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
 
-            # CXk = aircraftData.loc[ '' ,  ]     # fixed operating cost
-            cTk = singleAircraftData['Time cost parameter']   # time based costs
-            cfk = singleAircraftData['Fuel cost parameter'] * distance# fuel cost
-            spk = singleAircraftData['Speed']    # speed of aircraft
-            CLk = singleAircraftData['Weekly lease cost']
-            CXk = singleAircraftData['Fixed operating cost']
+                # CXk = aircraftData.loc[ '' ,  ]     # fixed operating cost
+                cTk = singleAircraftData['Time cost parameter']   # time based costs
+                cfk = singleAircraftData['Fuel cost parameter'] * distance# fuel cost
+                spk = singleAircraftData['Speed']    # speed of aircraft
+                CLk = singleAircraftData['Weekly lease cost']
+                CXk = singleAircraftData['Fixed operating cost']
 
-            z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
-            ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
+                z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
+                ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
 
 
 
@@ -70,25 +71,23 @@ m.setObjective(m.getObjective(), GRB.MAXIMIZE)  # The objective is to maximize r
 # Define constraints
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
-        origin = airports_lst[i]    # To check the current airport origin
-        dest   = airports_lst[j]    # To check the current airport destination
-        distance = funct.calculateDistance(origin, dest)
+        if i!=j:
+            origin = airports_lst[i]    # To check the current airport origin
+            dest   = airports_lst[j]    # To check the current airport destination
+            distance = funct.calculateDistance(origin, dest)
 
-        m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) # C1
-        m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) # C2
-        for k in range(numberOfAircraft):
-            m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in airports_lst) + quicksum(w[i, j]*(1-g[i])
-                        for i in airports_lst), GRB.LESS_EQUAL, quicksum(z[j, i][k]*s[k]*globals.LF
-                                                                            for k in aircraftType))  # C3
+            m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) # C1
+            m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) # C2
+            for k in range(numberOfAircraft):
+                m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in airports_lst) + quicksum(w[i, j]*(1-g[i]) for i in airports_lst), GRB.LESS_EQUAL, quicksum(z[j, i][k]*s[k]*globals.LF for k in numberOfAircraft))  # C3
 
-            m.addConstr(quicksum(z[i, j][k] for j in airports_lst), GRB.EQUAL, quicksum(z[j, i][k] for j in
-                                                                                        airports_lst))  # C4
+                m.addConstr(quicksum(z[i, j][k] for j in airports_lst), GRB.EQUAL, quicksum(z[j, i][k] for j in airports_lst))  # C4
 
-            m.addConstr(quicksum(quicksum((distance / spk_lst[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in
-                        airports_lst) for j in airports_lst), GRB.LESS_EQUAL, BT[k] * AC[k])  # C5
+                m.addConstr(quicksum(quicksum((distance / spk_lst[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in
+                            airports_lst) for j in airports_lst), GRB.LESS_EQUAL, BT[k] * AC[k])  # C5
 
-            m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if distance <= R[k] else 0  )  # c6
-            m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if Run[k] <= Run_a[i] and Run[k] <= Run_a[j] else 0)   # c7
+                m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if distance <= R[k] else 0  )  # c6
+                m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if Run[k] <= Run_a[i] and Run[k] <= Run_a[j] else 0)   # c7
 
 m.update()
 # m.write('test.lp')

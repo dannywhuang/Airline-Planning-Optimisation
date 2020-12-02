@@ -80,6 +80,9 @@ def loadData():
     networkData['rnw']     = runway
     networkData['slots']   = slots
 
+    networkData = pd.DataFrame(networkData)
+    airlineData = pd.DataFrame(airlineData)
+
     globals.networkData = networkData
 
     return airlineData

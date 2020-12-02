@@ -1,4 +1,24 @@
 from gurobipy import *
+import demand
+import demand_loadData as load
+import demand_functions as funct
+import demand_globalData as globals
+import matplotlib.pyplot as plt
+
+demand.demandForecast()
+
+airlineData = globals.airlineData
+networkData = globals.networkData
+
+print()
+
+
+
+
+
+
+
+
 
 # Data
 Airports = ['A1','A2','A3']

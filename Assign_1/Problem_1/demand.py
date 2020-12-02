@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # Load input data from excel and structurize it into panda dataframes
 airlineData = load.loadData()
 
-# Calibrate the gracity function based on the given 2015 demand
+# Calibrate the gravity function based on the given 2015 demand
 [globals.k, globals.b1, globals.b2, globals.b3] = funct.gravityModelCalibration(airlineData['2015'])
 funct.VVgravityModel(airlineData['2015'])   # plot error between the gravity function and data
 

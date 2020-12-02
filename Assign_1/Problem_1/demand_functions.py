@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 def calculateDistance(origin,destination):
 
     networkData = globals.networkData
-    ICAO_lst = networkData['ICAO']
-    city_lst = networkData['city']
-    lat_lst  = networkData['lat']
-    long_lst = networkData['long']
+    ICAO_lst = np.array(networkData['ICAO'])
+    city_lst = np.array(networkData['city'])
+    lat_lst  = np.array(networkData['lat'])
+    long_lst = np.array(networkData['long'])
     
     if origin in ICAO_lst:
         indexOrig = origin==ICAO_lst
@@ -32,14 +32,14 @@ def gravityModelCalibration(calibrationData):
 
     fuelCost = globals.fuelCost
 
-    population_lst  = calibrationData['pop']
-    GDP_lst         = calibrationData['GDP']
-    demand_lst      = calibrationData['demand']
+    population_lst  = np.array(calibrationData['pop'])
+    GDP_lst         = np.array(calibrationData['GDP'])
+    demand_lst      = np.array(calibrationData['demand'])
 
     networkData     = globals.networkData
-    city_lst        = networkData['city']
+    city_lst        = np.array(networkData['city'])
 
-    ICAO_lst = networkData['ICAO']
+    ICAO_lst = np.array(networkData['ICAO'])
 
     demand_lin = np.array([])
     pop_lin    = np.array([])
@@ -97,11 +97,11 @@ def gravityModel(dataSet):
     networkData = globals.networkData
     fuelCost    = globals.fuelCost
 
-    population_lst = dataSet['pop']
-    GDP_lst        = dataSet['GDP']
-    city_lst       = dataSet['city']
+    population_lst = np.array(dataSet['pop'])
+    GDP_lst        = np.array(dataSet['GDP'])
+    city_lst       = np.array(dataSet['city'])
 
-    ICAO_lst = networkData['ICAO']
+    ICAO_lst = np.array(networkData['ICAO'])
     numberOfAirports = len(ICAO_lst)
 
     demand_lst = np.array([])
@@ -144,10 +144,10 @@ def linearCityDataInterp(targetYear, dataSet1, dataSet2):
     cities_lst = dataSet1['city']
     numberOfCities = len(cities_lst)
 
-    popYear1_lst = dataSet1['pop']
-    popYear2_lst = dataSet2['pop']
-    GDPyear1_lst = dataSet1['GDP']
-    GDPyear2_lst = dataSet2['GDP']
+    popYear1_lst = np.array(dataSet1['pop'])
+    popYear2_lst = np.array(dataSet2['pop'])
+    GDPyear1_lst = np.array(dataSet1['GDP'])
+    GDPyear2_lst = np.array(dataSet2['GDP'])
 
     # 2020 data forecast
     GDPtarget_lst = np.array([])
@@ -172,8 +172,8 @@ def linearCityDataInterp(targetYear, dataSet1, dataSet2):
 
 def VVgravityModel(comparisonData):
 
-    year           = comparisonData['year']
-    demandData     = comparisonData['demand']
+    year           = np.array(comparisonData['year'])
+    demandData     = np.array(comparisonData['demand'])
     demandComputed = gravityModel(comparisonData)
 
     numberOfAirports = len(comparisonData['city'])
@@ -207,10 +207,10 @@ def VVgravityModel(comparisonData):
 
 def VVdemandForecast(forecastData, initialData):
 
-    yearInit        = initialData['year']
-    yearForecast    = forecastData['year']
-    demandInit      = initialData['demand']
-    demandForecast  = forecastData['demand']
+    yearInit        = np.array(initialData['year'])
+    yearForecast    = np.array(forecastData['year'])
+    demandInit      = np.array(initialData['demand'])
+    demandForecast  = np.array(forecastData['demand'])
 
     numberOfAirports = len(initialData['city'])
     demandData_lst = np.reshape(demandInit,(1,numberOfAirports * numberOfAirports))[0]

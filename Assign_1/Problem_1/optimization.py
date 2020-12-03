@@ -65,8 +65,8 @@ for i in range(numberOfAirports):
             distance = funct.calculateDistance(origin, dest)
 
 
-            x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
-            w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
+            x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER, name="x[%s,%s]" % (i, j))
+            w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER, name="w[%s,%s]" % (i, j))
 
             # Iterate over AC types
             for k in range(numberOfAircraft):
@@ -80,8 +80,8 @@ for i in range(numberOfAirports):
                 CXk = singleAircraftData['Fixed operating cost']
 
 
-                z[i,j,k] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
-                AC[k]    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
+                z[i,j,k] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER, name="z[%s,%s,%s]" % (i, j, k))
+                AC[k]    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER, name="AC[%s]" % (k))
 
 
 

@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 
 def calculateDistance(origin,destination):
-
     networkData = globals.networkData
     ICAO_lst = np.array(networkData['ICAO'])
     city_lst = np.array(networkData['city'])
@@ -20,11 +19,17 @@ def calculateDistance(origin,destination):
     elif origin in city_lst:
         indexOrig = origin==city_lst
         indexDest = destination==city_lst
+    else:
+        origin2 = city_lst[origin]
+        destination2 = city_lst[destination]
+        indexOrig = origin2 == city_lst
+        indexDest = destination2 == city_lst
     
     t1 = pow(sin((lat_lst[indexOrig][0] - lat_lst[indexDest][0])/2*(pi/180)), 2)
     t2 = cos(lat_lst[indexOrig][0]*(pi/180)) * cos(lat_lst[indexDest][0]*(pi/180)) * pow(sin((long_lst[indexOrig][0]-long_lst[indexDest][0])/2*(pi/180)), 2)
     deltaSigma = 2 * asin(sqrt(t1+t2))
     distance = 6371 * deltaSigma
+
     return distance
 
 

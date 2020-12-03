@@ -101,12 +101,11 @@ for i in range(numberOfAirports):
             for k in range(numberOfAircraft):
                 singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
 
-
                 m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in range(numberOfAirports) if i!=j) + quicksum(w[i, j]*(1-g[i]) for i in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k]*s[k]*globals.LF for k in range(numberOfAircraft)), name="C3")  # C3
 
                 m.addConstr(quicksum(z[i, j, k] for j in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k] for j in range(numberOfAirports) if i!=j), name="C4")  # C4
 
-                m.addConstr(quicksum(quicksum((distance / sp[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in range(numberOfAirports)) for j in range(numberOfAirports) if i!=j) <= BT * AC[k], name="C5")  # C5
+                m.addConstr(quicksum(quicksum((distance / sp[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j, k] for i in range(numberOfAirports)if i!=j) for j in range(numberOfAirports) if i!=j) <= BT * AC[k], name="C5")  # C5
 
                 m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
                 m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
@@ -138,5 +137,7 @@ print("Frequencies:----------------------------------")
 print()
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
-        if z[i,j].X >0:
-            print(airports_lst[i], ' to ', airports_lst[j], z[i,j].X)
+        for k in range(numberOfAircraft):
+            if i!= j:
+                if z[i,j,k].X >0:
+                    print(airports_lst[i], ' to ', airports_lst[j], z[i,j].X)

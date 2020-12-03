@@ -7,6 +7,8 @@ import aircraft_loadData as aircraftLoad
 import matplotlib.pyplot as plt
 import numpy as np
 
+BT = 10 #10 hour block time
+
 demand.demandForecast()
 
 airlineData  = globals.airlineData
@@ -23,6 +25,7 @@ q = airlineData['demand']
 
 
 airports_lst = np.array(networkData['city'])
+airportsRunway_lst = np.array(networkData['rnw'])
 numberOfAirports = len(airports_lst)
 
 g = np.ones(numberOfAirports)
@@ -30,14 +33,29 @@ g[airports_lst=='Paris'] = 0
 
 numberOfAircraft = len(aircraftData.columns)
 
-# Start modelling optimization problem
+
 m = Model('Network and Fleet Development')
+# Decision variables
 x = {}
 w = {}
 z = {}
-ACk = {}
+AC = {}
+# Other variables
+s = {}
+sp = {}
+TAT = {}
+R = {}
+RunAC = {}
+# Add variables that are not in the objective function
+for k in range(numberOfAircraft):
+    singleAircraftData = aircraftData.iloc[:, k]
+    s[k] = singleAircraftData['Seats']
+    sp[k] = singleAircraftData['Speed']
+    TAT[k] = singleAircraftData['Average TAT']
+    R[k] = singleAircraftData['Maximum range']
+    RunAC[k] = singleAircraftData['Runway required']
 
-# Iterate over itineraries
+# Add variables that are in the objective function as well
 for i in range(numberOfAirports):
     for j in range(numberOfAirports):
         if i!=j:
@@ -45,6 +63,7 @@ for i in range(numberOfAirports):
             dest   = airports_lst[j]    # To check the current airport destination
 
             distance = funct.calculateDistance(origin, dest)
+
 
             x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
             w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER)
@@ -60,8 +79,9 @@ for i in range(numberOfAirports):
                 CLk = singleAircraftData['Weekly lease cost']
                 CXk = singleAircraftData['Fixed operating cost']
 
-                z[i,j] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
-                ACk    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
+
+                z[i,j,k] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER)
+                AC[k]    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER)
 
 
 
@@ -76,18 +96,20 @@ for i in range(numberOfAirports):
             dest   = airports_lst[j]    # To check the current airport destination
             distance = funct.calculateDistance(origin, dest)
 
-            m.addConstr(x[i,j] + w[i,j], GRB.LESS_EQUAL, q[i,j]) # C1
-            m.addConstr(w[i, j], GRB.LESS_EQUAL, q[i,j] * g[i] * g[j]) # C2
+            m.addConstr(x[i,j] + w[i,j] <= q[i,j], name="C1") # C1
+            m.addConstr(w[i, j] <= q[i,j] * g[i] * g[j], name="C2") # C2
             for k in range(numberOfAircraft):
-                m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in airports_lst) + quicksum(w[i, j]*(1-g[i]) for i in airports_lst), GRB.LESS_EQUAL, quicksum(z[j, i][k]*s[k]*globals.LF for k in numberOfAircraft))  # C3
+                singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
 
-                m.addConstr(quicksum(z[i, j][k] for j in airports_lst), GRB.EQUAL, quicksum(z[j, i][k] for j in airports_lst))  # C4
 
-                m.addConstr(quicksum(quicksum((distance / spk_lst[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in
-                            airports_lst) for j in airports_lst), GRB.LESS_EQUAL, BT[k] * AC[k])  # C5
+                m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in range(numberOfAirports) if i!=j) + quicksum(w[i, j]*(1-g[i]) for i in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k]*s[k]*globals.LF for k in range(numberOfAircraft)), name="C3")  # C3
 
-                m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if distance <= R[k] else 0  )  # c6
-                m.addConstr(z[i,j][k] , GRB.LESS_EQUAL, 10000 if Run[k] <= Run_a[i] and Run[k] <= Run_a[j] else 0)   # c7
+                m.addConstr(quicksum(z[i, j, k] for j in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k] for j in range(numberOfAirports) if i!=j), name="C4")  # C4
+
+                m.addConstr(quicksum(quicksum((distance / sp[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j] for i in range(numberOfAirports)) for j in range(numberOfAirports) if i!=j) <= BT * AC[k], name="C5")  # C5
+
+                m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
+                m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
 
 m.update()
 # m.write('test.lp')
@@ -114,7 +136,7 @@ elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
 print()
 print("Frequencies:----------------------------------")
 print()
-for i in airports:
-    for j in airports:
+for i in range(numberOfAirports):
+    for j in range(numberOfAirports):
         if z[i,j].X >0:
-            print(Airports[i], ' to ', Airports[j], z[i,j].X)
+            print(airports_lst[i], ' to ', airports_lst[j], z[i,j].X)

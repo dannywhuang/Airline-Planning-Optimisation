@@ -7,7 +7,7 @@ import aircraft_loadData as aircraftLoad
 import matplotlib.pyplot as plt
 import numpy as np
 
-BT = 10 #10 hour block time
+BT = 10*7  # 10 hour block time per day (use value for a week)
 
 demand.demandForecast()
 

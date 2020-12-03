@@ -64,7 +64,6 @@ for i in range(numberOfAirports):
 
             distance = funct.calculateDistance(origin, dest)
 
-
             x[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER, name="x[%s,%s]" % (i, j))
             w[i,j] = m.addVar(obj = (5.9*distance**(-0.76) + 0.043)*distance ,lb=0, vtype=GRB.INTEGER, name="w[%s,%s]" % (i, j))
 
@@ -78,7 +77,6 @@ for i in range(numberOfAirports):
                 spk = singleAircraftData['Speed']    # speed of aircraft
                 CLk = singleAircraftData['Weekly lease cost']
                 CXk = singleAircraftData['Fixed operating cost']
-
 
                 z[i,j,k] = m.addVar(obj = (0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk/1.5*distance), lb=0, vtype=GRB.INTEGER, name="z[%s,%s,%s]" % (i, j, k))
                 AC[k]    = m.addVar(obj = CLk , lb=0, vtype=GRB.INTEGER, name="AC[%s]" % (k))
@@ -108,6 +106,7 @@ for i in range(numberOfAirports):
                 m.addConstr(quicksum(quicksum((distance / sp[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j, k] for i in range(numberOfAirports)if i!=j) for j in range(numberOfAirports) if i!=j) <= BT * AC[k], name="C5")  # C5
 
                 m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
+
                 m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
 
 m.update()

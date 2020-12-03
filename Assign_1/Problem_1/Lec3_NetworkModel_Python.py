@@ -47,6 +47,8 @@ m.update()
 # Set time constraint for optimization (5minutes)
 # m.setParam('TimeLimit', 1 * 60)
 # m.setParam('MIPgap', 0.009)
+m.computeIIS()
+m.write("IIS.ilp")
 m.optimize()
 # m.write("testout.sol")
 status = m.status

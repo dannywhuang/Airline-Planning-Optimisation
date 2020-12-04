@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 BT = 10*7  # 10 hour block time per day (use value for a week)
-f = 1.42 * 0.82 # 1.42 USD/gallon to EUR/gallon
+f = 1.42   # 1.42 USD/gallon to EUR/gallon # usd price is used to calibrate function
 
 demand.demandForecast()
 
@@ -18,7 +18,7 @@ aircraftData = aircraftLoad.loadData()
 
 
 
-YearToAnalyze = '2020'
+YearToAnalyze = '2015'
 
 airlineData = airlineData[YearToAnalyze]
 q = airlineData['demand']
@@ -59,10 +59,6 @@ for k in aircraft:
     RunAC[k] = singleAircraftData['Runway required']
 
 
-
-
-
-
 # Add variables that are in the objective function as well
 for i in airports:
     for j in airports:
@@ -81,8 +77,8 @@ for i in airports:
 
                 # CXk = aircraftData.loc[ '' ,  ]     # fixed operating cost
                 cTk = singleAircraftData['Time cost parameter']   # time based costs
-                cfk = singleAircraftData['Fuel cost parameter'] # fuel cost
-                spk = singleAircraftData['Speed']    # speed of aircraft
+                cfk = singleAircraftData['Fuel cost parameter']   # fuel cost
+                spk = singleAircraftData['Speed']                 # speed of aircraft
                 CLk = singleAircraftData['Weekly lease cost']
                 CXk = singleAircraftData['Fixed operating cost']
 
@@ -98,7 +94,7 @@ m.addConstrs(x[i,j] + w[i,j] <= q[i,j] for i in airports for j in airports if i!
 m.addConstrs(w[i,j] <= q[i,j]*g[i]*g[j] for i in airports for j in airports if i!=j)
 m.addConstrs(x[i,j] + quicksum(w[i,m]*(1-g[j]) for m in airports if m!=i) + quicksum(w[m,j]*(1-g[i]) for m in airports if m!=j) <= quicksum(z[i,j,k]*s[k]*globals.LF for k in aircraft) for i in airports for j in airports if i!=j)
 m.addConstrs(quicksum(z[i,j,k] for j in airports if i!=j) - quicksum(z[j,i,k] for j in airports if i!=j) == 0 for i in airports for k in aircraft)
-m.addConstrs(quicksum(quicksum(funct.calculateDistance(i, j)/sp[k]+TAT[k]*(1.5-0.5*g[j]) for j in airports if i!=j) for i in airports) <= BT*AC[k] for k in aircraft)
+m.addConstrs(quicksum(quicksum((funct.calculateDistance(i, j)/sp[k]+ (TAT[k]/60) *(1.5-0.5*g[j]))*z[i, j, k] for j in airports if i!=j) for i in airports)  <= BT*AC[k]  for k in aircraft)
 m.addConstrs(z[i,j,k] <= (10000 if funct.calculateDistance(i, j) <= R[k] else 0) for i in airports for j in airports for k in aircraft if i!=j)
 m.addConstrs(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0) for i in airports for j in airports for k in aircraft if i!=j)
 
@@ -155,13 +151,15 @@ elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
 print()
 print("Frequencies:----------------------------------")
 print()
+
 # for i in airports:
 #     for j in airports:
 #         for k in aircraft:
 #             if i!= j:
 #                 if z[i,j,k].X >0:
-#                     print(airports_lst[i], ' to ', airports_lst[j], z[i,j].X)
+#                     print(airports_lst[i], ' to ', airports_lst[j], z[i,j,k].X)
 
-for var in m.getVars():
-    if var.x:
-        print('%s %f' % (var.varName, var.x))
+
+# for var in m.getVars():
+#     if var.x:
+#         print('%s %f' % (var.varName, var.x))

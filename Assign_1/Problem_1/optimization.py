@@ -94,7 +94,7 @@ m.addConstrs(x[i,j] + w[i,j] <= q[i,j] for i in airports for j in airports if i!
 m.addConstrs(w[i,j] <= q[i,j]*g[i]*g[j] for i in airports for j in airports if i!=j)
 m.addConstrs(x[i,j] + quicksum(w[i,m]*(1-g[j]) for m in airports if m!=i) + quicksum(w[m,j]*(1-g[i]) for m in airports if m!=j) <= quicksum(z[i,j,k]*s[k]*globals.LF for k in aircraft) for i in airports for j in airports if i!=j)
 m.addConstrs(quicksum(z[i,j,k] for j in airports if i!=j) - quicksum(z[j,i,k] for j in airports if i!=j) == 0 for i in airports for k in aircraft)
-m.addConstrs(quicksum(quicksum((funct.calculateDistance(i, j)/sp[k]+ (TAT[k]/60) *(1.5-0.5*g[j]))*z[i, j, k] for j in airports if i!=j) for i in airports)  <= BT*AC[k]  for k in aircraft)
+m.addConstrs(quicksum(quicksum((funct.calculateDistance(i, j)/sp[k]+ (TAT[k]) *(1.5-0.5*g[j]))*z[i, j, k] for j in airports if i!=j) for i in airports)  <= BT*AC[k]  for k in aircraft)
 m.addConstrs(z[i,j,k] <= (10000 if funct.calculateDistance(i, j) <= R[k] else 0) for i in airports for j in airports for k in aircraft if i!=j)
 m.addConstrs(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0) for i in airports for j in airports for k in aircraft if i!=j)
 

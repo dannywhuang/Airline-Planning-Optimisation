@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from datetime import datetime
 # ________________________________
 # fixed cost per day
 Cap      = 98
@@ -19,47 +20,39 @@ Hotel_cost  = '3_Hotel_Costs_Group_34.xlsx'
 Timetable   =  pd.read_excel(File1, usecols = 'A:E')
 Duty_period =  pd.read_excel(File2, usecols = 'A:B')
 
-Flights_duty     =  Duty_period.iloc[:, 1]
+Flights_duty     =  Duty_period.iloc[:, 1].to_numpy()
 
 Flight_num  = Timetable.iloc[:, 0].to_numpy()
 
 T_start     = Timetable.iloc[:, 3].to_numpy()
 T_end       = Timetable.iloc[:, 4].to_numpy()
 
-Times       = {}
-Times['flight no']    =  Flight_num
-Start_h     =  np.zeros(len(Flight_num))
-Start_min   =  np.zeros(len(Flight_num))
 
-End_h       =  np.zeros(len(Flight_num))
-End_min     =  np.zeros(len(Flight_num))
+FMT = '%H:%M:%S'
+Flight_time = np.zeros(len(T_start))
+for i in range(len(T_start)):
+     t2 =   T_end[i]
+     t1 =   T_start[i]
+     td = datetime.strptime(t2, FMT) - datetime.strptime(t1, FMT)
+     hours  = td.seconds/3600
+     Flight_time[i] = hours
 
-
-for i in range(len(Flight_num)):
-     t_start = [int(i) for i in (T_start[i].split(":",3))]
-     t_end   = [int(i) for i in (T_end[i].split(":",3))]
-
-     Start_h[i]    = t_start[0]
-     Start_min[i]  = t_start[1]
-
-     End_h[i]      = t_end[0]
-     End_min[i]    = t_end[1]
-
-Times['Start_h']    =  Start_h
-Times['Start_min']  =  Start_min
-Times['End_h']    =  End_h
-Times['End_min']  =  End_min
+Flights_duty = np.array([Flights_duty[i][1:-1] for i in range(len(Flights_duty))])
+Flights_duty = np.array([i.replace("'", '') for i in Flights_duty ])
 
 
-Flight_time = ((End_h - Start_h) * 60 + End_min - Start_min) / 60  # flight time in hours
+
 
 Cost = np.ones(len(Flights_duty))
 
-#for i in range(len(Flights_duty)):
-#     Flight_cost = 0
-#      for j in list(Flights_duty[i]):
-         #print(j)
-         #index = list(Flight_num).index(j)
-
-
+for i in range(len(Flights_duty)):
+    Flight_cost = 0
+    l = Flights_duty[i].split(", ")
+    for j in l:
+         index = list(Flight_num).index(j)
+         h     = Flight_time[index]
+         cost_fixed  =  Cap + firstO + Steward
+         cost_hour   =  (Cap_h + firstO_h +Steward_h)*h
+         Flight_cost = Flight_cost + cost_fixed + cost_hour
+    Cost[i] = Flight_cost
 

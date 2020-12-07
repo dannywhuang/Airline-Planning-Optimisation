@@ -15,10 +15,11 @@ Steward_h  = 18*3  # 3 persons
 
 File1       = '1_Timetable_Group_34.xlsx'
 File2       = '2_Duty_Periods_Group_34.xlsx'
-Hotel_cost  = '3_Hotel_Costs_Group_34.xlsx'
+File3       = '3_Hotel_Costs_Group_34.xlsx'
 
 Timetable   =  pd.read_excel(File1, usecols = 'A:E')
 Duty_period =  pd.read_excel(File2, usecols = 'A:B')
+Hotel       =  pd.read_excel(File3, usecols = 'A:c')
 
 Flights_duty     =  Duty_period.iloc[:, 1].to_numpy()
 
@@ -54,5 +55,10 @@ for i in range(len(Flights_duty)):
          cost_fixed  =  Cap + firstO + Steward
          cost_hour   =  (Cap_h + firstO_h +Steward_h)*h
          Flight_cost = Flight_cost + cost_fixed + cost_hour
-    Cost[i] = Flight_cost
+    if l[0] != l[-1]:
+        hotel_cost = 1  # add costs from file for
+    else:
+        hotel_cost = 0
+
+    Cost[i] = Flight_cost + hotel_cost
 

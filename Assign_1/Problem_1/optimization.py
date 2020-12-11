@@ -4,8 +4,10 @@ import demand_loadData as load
 import demand_functions as funct
 import demand_globalData as globals
 import aircraft_loadData as aircraftLoad
+from formatFunctions import formatOutput
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 BT = 10*7  # 10 hour block time per day (use value for a week)
 f = 1.42   # 1.42 USD/gallon to EUR/gallon # usd price is used to calibrate function
@@ -18,7 +20,7 @@ aircraftData = aircraftLoad.loadData()
 
 
 
-YearToAnalyze = '2015'
+YearToAnalyze = '2020'
 
 airlineData = airlineData[YearToAnalyze]
 q = airlineData['demand']
@@ -128,7 +130,7 @@ m.update()
 # m.write('test.lp')
 # Set time constraint for optimization (5minutes)
 # m.setParam('TimeLimit', 1 * 60)
-# m.setParam('MIPgap', 0.009)
+# m.setParam('MIPgap', 0.2)
 # m.computeIIS()
 # m.write("IIS.ilp")
 m.optimize()
@@ -146,6 +148,8 @@ elif status == GRB.Status.OPTIMAL or True:
 elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
     print('Optimization was stopped with status %d' % status)
 
+
+formatOutput(m)
 
 # Print out Solutions
 print()

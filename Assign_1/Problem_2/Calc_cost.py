@@ -52,13 +52,13 @@ for i in range(len(Flights_duty)):
     for j in l:
          index = list(Flight_num).index(j)
          h     = Flight_time[index]
-         cost_fixed  =  Cap + firstO + Steward
          cost_hour   =  (Cap_h + firstO_h +Steward_h)*h
-         Flight_cost = Flight_cost + cost_fixed + cost_hour
+         Flight_cost = Flight_cost  + cost_hour
     if l[0] != l[-1]:
         Base = Origin[list(Flight_num).index(l[0])]
         hotel_cost =  Room_fee[list(Airports).index(Base)] * 5  # 5 crew members
     else:
         hotel_cost = 0
-    Cost[i] = Flight_cost + hotel_cost
+    cost_fixed = Cap + firstO + Steward
+    Cost[i] = Flight_cost + hotel_cost + cost_fixed
 

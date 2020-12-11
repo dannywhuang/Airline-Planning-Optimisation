@@ -52,7 +52,7 @@ for i in range(len(Flights_duty)):
     for j in l:
          index = list(Flight_num).index(j)
          h     = Flight_time[index]
-         cost_hour   =  (Cap_h + firstO_h +Steward_h)*h
+         cost_hour   =  (Cap_h + firstO_h +Steward_h)*(h+40/60) # add brief periods
          Flight_cost = Flight_cost  + cost_hour
     if l[0] != l[-1]:
         Base = Origin[list(Flight_num).index(l[0])]

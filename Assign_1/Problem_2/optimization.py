@@ -74,7 +74,7 @@ while True:
     m.update()
 
     m.setObjective(m.getObjective(), GRB.MINIMIZE)  # The objective is to minimize crew cost
-
+    m.setParam("LogFile", 'logs/iteration' + str(iterationCount))
     # add constraints
     m.addConstrs(quicksum(dpf[p, f]*x[p] for p in pCurrent) == 1 for f in F)
     m.update()
@@ -82,10 +82,20 @@ while True:
     # optimize
     m.optimize()
 
+    # write column generation solution to gurobi file
+    file = open('logs/iteration' + str(iterationCount), 'a')
+    file.write('\nSolution')
+    for var in m.getVars():
+        if var.x:
+            file.write('%s %f \n' % (var.varName, var.x))
+    file.close()
+
+    # get dual variables
     dualPi = {}
     for count,constr in enumerate(m.getConstrs()):
         dualPi[count] = constr.Pi
 
+    # compute slack for each pairing not in the model
     slack = {}
     for p in P:
         if p not in pCurrent:
@@ -115,6 +125,7 @@ while True:
             break
 
 
+
 # now solve the actual problem with binary variables
 print("\n")
 print("Amount of pairings: ",len(pCurrent))
@@ -125,7 +136,7 @@ for p in pCurrent:
     x2[p] = m.addVar(obj=cost[p], vtype=GRB.BINARY, name="x[%s]" % (p))
 
 m.update()
-
+m.setParam("LogFile", 'logs/final')
 m.setObjective(m.getObjective(), GRB.MINIMIZE)  # The objective is to minimize crew cost
 
 # add constraints
@@ -135,6 +146,14 @@ m.update()
 # optimize
 m.optimize()
 
+file = open('logs/final', 'a')
+file.write('\nSolution')
+for var in m.getVars():
+    if var.x:
+        file.write('%s %f \n' % (var.varName, var.x))
+file.close()
+
 for var in m.getVars():
     if var.x:
         print('%s %f' % (var.varName, var.x))
+

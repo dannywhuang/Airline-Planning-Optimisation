@@ -30,7 +30,8 @@ Hotel       =  pd.read_excel(File3, usecols = 'A:C')
 Airports    =  Hotel.iloc[:, 0].to_numpy()
 Room_fee    =  Hotel.iloc[:, 2].to_numpy()
 
-Flights_duty    =  Duty_period.iloc[:, 1].apply(ast.literal_eval)
+
+Flights_duty     =  Duty_period.iloc[:, 1].apply(ast.literal_eval)
 
 Flight_num  = Timetable.iloc[:, 0].to_numpy()
 Origin      = Timetable.iloc[:, 1].to_numpy()

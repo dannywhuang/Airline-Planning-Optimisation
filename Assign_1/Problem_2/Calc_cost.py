@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import ast
 # ________________________________
 # fixed cost per day
 Cap      = 98
@@ -41,14 +42,11 @@ for i in range(len(T_start)):
      hours  = td.seconds/3600
      Flight_time[i] = hours
 
-Flights_duty = np.array([Flights_duty[i][1:-1] for i in range(len(Flights_duty))])
-Flights_duty = np.array([i.replace("'", '') for i in Flights_duty ])
-
 Cost = np.ones(len(Flights_duty))
 
 for i in range(len(Flights_duty)):
     Flight_cost = 0
-    l = Flights_duty[i].split(", ")
+    l  = ast.literal_eval(Flights_duty[i])
     for j in l:
          index = list(Flight_num).index(j)
          h     = Flight_time[index]

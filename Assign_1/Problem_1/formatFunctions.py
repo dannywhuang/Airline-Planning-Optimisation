@@ -44,7 +44,6 @@ def formatOutput(m):
                 j = int(loc[1])
                 k = int(loc[2])
 
-
                 z_optimised.iloc[i,j].append([k, var.x])
 
             else:
@@ -75,6 +74,6 @@ def readOptimizedData():
     w_ij[w_ij == '-'] = 0
     z_ij[z_ij == '[]'] = 0
 
-    return x_ij,w_ij,z_ij,AC
+    return x_ij, w_ij, z_ij, AC
 
 

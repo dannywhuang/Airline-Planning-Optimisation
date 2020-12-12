@@ -126,6 +126,7 @@ m.addConstrs(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (Run
 #                 m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
 #
 #                 m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
+
 if __name__ == '__main__':
     m.update()
     # m.write('test.lp')

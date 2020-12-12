@@ -152,22 +152,22 @@ if __name__ == '__main__':
     print()
     print("Frequencies:----------------------------------")
     print()
-    ask = np.ones((4*len(airports)**2,4))
-    p = 0
-    for i in airports:
-        for j in airports:
-            origin = airports_lst[i]    # To check the current airport origin
-            dest   = airports_lst[j]    # To check the current airport destination
-            distance = funct.calculateDistance(origin, dest)
-            for k in aircraft:
-                if i!= j:
-                    if z[i,j,k].X >0:
-                        ask[p,3] = s[k]*distance
-                        ask[p, 0] =  i
-                        ask[p, 1] =  j
-                        ask[p, 2] = k
-                        print(airports_lst[i], ' to ', airports_lst[j], z[i,j,k].X,k)
-                        p = p+1
+    # ask = np.ones((4*len(airports)**2,4))
+    # p = 0
+    # for i in airports:
+    #     for j in airports:
+    #         origin = airports_lst[i]    # To check the current airport origin
+    #         dest   = airports_lst[j]    # To check the current airport destination
+    #         distance = funct.calculateDistance(origin, dest)
+    #         for k in aircraft:
+    #             if i!= j:
+    #                 if z[i,j,k].X >0:
+    #                     ask[p,3] = s[k]*distance
+    #                     ask[p, 0] =  i
+    #                     ask[p, 1] =  j
+    #                     ask[p, 2] = k
+    #                     print(airports_lst[i], ' to ', airports_lst[j], z[i,j,k].X,k)
+    #                     p = p+1
 
     # for var in m.getVars():
     #     if var.x:

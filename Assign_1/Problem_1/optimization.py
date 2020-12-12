@@ -4,8 +4,10 @@ import demand_loadData as load
 import demand_functions as funct
 import demand_globalData as globals
 import aircraft_loadData as aircraftLoad
+from formatFunctions import formatOutput
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 
 BT = 10*7  # 10 hour block time per day (use value for a week)
@@ -146,7 +148,8 @@ if __name__ == '__main__':
 
     elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
         print('Optimization was stopped with status %d' % status)
-
+        
+    formatOutput(m)
 
     # Print out Solutions
     print()
@@ -172,6 +175,7 @@ if __name__ == '__main__':
     # for var in m.getVars():
     #     if var.x:
     #         print('%s %f' % (var.varName, var.x))
+
 
 
 

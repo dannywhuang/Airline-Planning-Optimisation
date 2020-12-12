@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 
 
+
 def formatOutput(m):
 
     networkData = globals.networkData
@@ -11,7 +12,9 @@ def formatOutput(m):
     w_optimised = pd.DataFrame(columns=networkData['city'], index=networkData['city'])  # Direct flow from airport i to j
     z_optimised = pd.DataFrame(columns=networkData['city'], index=networkData['city'])  # Direct flow from airport i to j
     AC_optimised = pd.DataFrame(columns=['Number of AC'])
-
+    for i in range(len(networkData['city'])):
+        for j in range(len(networkData['city'])):
+            z_optimised.iloc[i, j] = []
 
     for var in m.getVars():
         if var.x:
@@ -41,7 +44,8 @@ def formatOutput(m):
                 j = int(loc[1])
                 k = int(loc[2])
 
-                z_optimised.iloc[i,j] = [k, var.x]
+
+                z_optimised.iloc[i,j].append([k, var.x])
 
             else:
                 ACnumber = int(var.VarName[-2])
@@ -69,8 +73,8 @@ def readOptimizedData():
 
     x_ij[x_ij == '-'] = 0
     w_ij[w_ij == '-'] = 0
-    z_ij[z_ij == '-'] = 0
+    z_ij[z_ij == '[]'] = 0
 
-    print()
+    return x_ij,w_ij,z_ij,AC
 
-# readOptimizedData()
+

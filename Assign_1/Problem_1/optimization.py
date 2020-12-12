@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+
 BT = 10*7  # 10 hour block time per day (use value for a week)
 f = 1.42   # 1.42 USD/gallon to EUR/gallon # usd price is used to calibrate function
 
@@ -125,45 +126,56 @@ m.addConstrs(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (Run
 #                 m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
 #
 #                 m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
+if __name__ == '__main__':
+    m.update()
+    # m.write('test.lp')
+    # Set time constraint for optimization (5minutes)
+    # m.setParam('TimeLimit', 1 * 60)
+    # m.setParam('MIPgap', 0.009)
+    # m.computeIIS()
+    # m.write("IIS.ilp")
+    m.optimize()
+    # m.write("testout.sol")
+    status = m.status
 
-m.update()
-# m.write('test.lp')
-# Set time constraint for optimization (5minutes)
-# m.setParam('TimeLimit', 1 * 60)
-# m.setParam('MIPgap', 0.2)
-# m.computeIIS()
-# m.write("IIS.ilp")
-m.optimize()
-# m.write("testout.sol")
-status = m.status
+    if status == GRB.Status.UNBOUNDED:
+        print('The model cannot be solved because it is unbounded')
 
-if status == GRB.Status.UNBOUNDED:
-    print('The model cannot be solved because it is unbounded')
+    elif status == GRB.Status.OPTIMAL or True:
+        f_objective = m.objVal
+        print('***** RESULTS ******')
+        print('\nObjective Function Value: \t %g' % f_objective)
 
-elif status == GRB.Status.OPTIMAL or True:
-    f_objective = m.objVal
-    print('***** RESULTS ******')
-    print('\nObjective Function Value: \t %g' % f_objective)
+    elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
+        print('Optimization was stopped with status %d' % status)
+        
+    formatOutput(m)
 
-elif status != GRB.Status.INF_OR_UNBD and status != GRB.Status.INFEASIBLE:
-    print('Optimization was stopped with status %d' % status)
+    # Print out Solutions
+    print()
+    print("Frequencies:----------------------------------")
+    print()
+    # ask = np.ones((4*len(airports)**2,4))
+    # p = 0
+    # for i in airports:
+    #     for j in airports:
+    #         origin = airports_lst[i]    # To check the current airport origin
+    #         dest   = airports_lst[j]    # To check the current airport destination
+    #         distance = funct.calculateDistance(origin, dest)
+    #         for k in aircraft:
+    #             if i!= j:
+    #                 if z[i,j,k].X >0:
+    #                     ask[p,3] = s[k]*distance
+    #                     ask[p, 0] =  i
+    #                     ask[p, 1] =  j
+    #                     ask[p, 2] = k
+    #                     print(airports_lst[i], ' to ', airports_lst[j], z[i,j,k].X,k)
+    #                     p = p+1
+
+    # for var in m.getVars():
+    #     if var.x:
+    #         print('%s %f' % (var.varName, var.x))
 
 
-formatOutput(m)
-
-# Print out Solutions
-print()
-print("Frequencies:----------------------------------")
-print()
-
-# for i in airports:
-#     for j in airports:
-#         for k in aircraft:
-#             if i!= j:
-#                 if z[i,j,k].X >0:
-#                     print(airports_lst[i], ' to ', airports_lst[j], z[i,j,k].X)
 
 
-# for var in m.getVars():
-#     if var.x:
-#         print('%s %f' % (var.varName, var.x))

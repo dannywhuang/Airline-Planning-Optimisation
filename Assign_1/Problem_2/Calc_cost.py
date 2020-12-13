@@ -71,6 +71,7 @@ for i in range(len(Flights_duty)):
     Cost[i] = Flight_cost + hotel_cost + cost_fixed
 
 save_obj(Cost, 'cost')
+# np.savetxt('cost.csv',Cost,delimiter=',')
 
 dpf = {}
 for p in range(len(Flights_duty)):
@@ -81,6 +82,6 @@ for p in range(len(Flights_duty)):
             dpf[p, f] = 0
 
 save_obj(dpf, 'dpf')
-# print("Should be 1: ", dfp[33441, 133]) # verification, should give 1
-# print("Should be 0: ", dfp[33440, 133]) # verification, should give 0
-
+print("Should be 1: ", dpf[33441, 133]) # verification, should give 1
+print("Should be 0: ", dpf[33440, 133]) # verification, should give 0
+print("Should be 1: ", dpf[136, 2]) # verification, should give 1

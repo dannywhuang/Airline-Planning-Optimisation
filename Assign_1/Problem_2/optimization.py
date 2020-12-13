@@ -4,7 +4,7 @@ from datetime import datetime
 import ast
 from gurobipy import *
 from objectLoader import load_obj
-
+import collections
 
 
 # ________________________________
@@ -119,9 +119,9 @@ while True:
     objectiveValues = np.append(objectiveValues, m.objVal)
     iterationCount += 1
     # check if all 6 iterations have a difference of less than 0.001 MU, if yes break
-    if len(objectiveValues) >= 6:
+    if len(objectiveValues) >= 5:
         difference = np.diff(objectiveValues)
-        if all(abs(i) <= 0.001 for i in difference[-6:]):
+        if all(abs(i) <= 0.001 for i in difference[-5:]):
             break
 
 
@@ -157,3 +157,14 @@ for var in m.getVars():
     if var.x:
         print('%s %f' % (var.varName, var.x))
 
+flight_check = np.array([])
+for i in P:
+    if i in x2 and x2[i].x:
+        lis = Flights_duty[i]
+        for q in range(len(lis)):
+            flight_check = np.append(flight_check,lis[q])
+
+print("Length of flights covered: ",len(flight_check))
+print("Length of flights planned: ",len(Flight_num))
+print("Are all flights covered? ", collections.Counter(flight_check) == collections.Counter(Flight_num))
+print("Are all flights covered double check? ", all(i in flight_check for i in Flight_num))

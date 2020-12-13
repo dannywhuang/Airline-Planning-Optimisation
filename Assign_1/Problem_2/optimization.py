@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import ast
 from gurobipy import *
-from objectLoader import load_obj
+from objectLoader import load_obj, save_obj
 import collections
 
 
@@ -158,8 +158,10 @@ for var in m.getVars():
         print('%s %f' % (var.varName, var.x))
 
 flight_check = np.array([])
+pairings     = np.array([])
 for i in P:
     if i in x2 and x2[i].x:
+        pairings = np.append(pairings, i)
         lis = Flights_duty[i]
         for q in range(len(lis)):
             flight_check = np.append(flight_check,lis[q])
@@ -168,3 +170,5 @@ print("Length of flights covered: ",len(flight_check))
 print("Length of flights planned: ",len(Flight_num))
 print("Are all flights covered? ", collections.Counter(flight_check) == collections.Counter(Flight_num))
 print("Are all flights covered double check? ", all(i in flight_check for i in Flight_num))
+
+save_obj(pairings, 'pairing')

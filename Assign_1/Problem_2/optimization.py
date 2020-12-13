@@ -5,7 +5,13 @@ import ast
 from gurobipy import *
 from objectLoader import load_obj
 import collections
+import os
+import glob
 
+# clear log files
+files = glob.glob('logs/*')
+for f in files:
+    os.remove(f)
 
 # ________________________________
 # fixed cost per day
@@ -111,6 +117,7 @@ while True:
     # add 50 pairings with best slack, if slack  > 0
     for i in range(50):
         if sortedSlack[i][1] > 0:
+            print("Iteration " + str(iterationCount) + ", pairing: " + str(sortedSlack[i][0]) + ", slack: " + str(sortedSlack[i][1]))
             pCurrent = np.append(pCurrent, sortedSlack[i][0])
         else:
             break

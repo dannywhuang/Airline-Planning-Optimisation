@@ -71,7 +71,7 @@ for i in range(len(Flights_duty)):
     Cost[i] = Flight_cost + hotel_cost + cost_fixed
 
 save_obj(Cost, 'cost')
-# np.savetxt('cost.csv',Cost,delimiter=',')
+np.savetxt('cost.csv',Cost,delimiter=',')
 
 dpf = {}
 for p in range(len(Flights_duty)):

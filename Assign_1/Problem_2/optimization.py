@@ -203,4 +203,3 @@ print("Are all flights covered? ", collections.Counter(flight_check) == collecti
 print("Are all flights covered double check? ", all(i in flight_check for i in Flight_num))
 
 save_obj(pairings, 'pairing')
-

@@ -50,13 +50,22 @@ for i in range(len(T_start)):
      Flight_time[i] = hours
 
 Cost = np.ones(len(Flights_duty))
+DurationNoBrief = np.zeros(len(Flights_duty))
+DurationWithBrief = np.zeros(len(Flights_duty))
+FlightCost = np.zeros(len(Flights_duty))
+FixedCost = np.zeros(len(Flights_duty))
+HotelCost = np.zeros(len(Flights_duty))
 
 for i in range(len(Flights_duty)):
     Flight_cost = 0
     l  = Flights_duty[i]
+    durationNoBrief = 0
+    durationWithBrief = 0
     for j in l:
          index = list(Flight_num).index(j)
          h     = Flight_time[index]
+         durationNoBrief += h
+         durationWithBrief += h + 40/60
          cost_hour   =  (Cap_h + firstO_h +Steward_h)*(h+40/60) # add brief periods
          Flight_cost = Flight_cost  + cost_hour
 
@@ -69,8 +78,18 @@ for i in range(len(Flights_duty)):
         hotel_cost = 0
     cost_fixed = Cap + firstO + Steward
     Cost[i] = Flight_cost + hotel_cost + cost_fixed
+    HotelCost[i] = hotel_cost
+    FlightCost[i] = Flight_cost
+    FixedCost = cost_fixed
+    DurationNoBrief[i] = durationNoBrief
+    DurationWithBrief[i] = durationWithBrief
 
 save_obj(Cost, 'cost')
+save_obj(HotelCost, 'hotel_cost')
+save_obj(FlightCost, 'flight_cost')
+save_obj(FixedCost, 'fixed_cost')
+save_obj(DurationNoBrief, 'duration_no_brief')
+save_obj(DurationWithBrief, 'duration_with_brief')
 np.savetxt('cost.csv',Cost,delimiter=',')
 
 dpf = {}

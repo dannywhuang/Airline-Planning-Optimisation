@@ -4,6 +4,8 @@ from scipy.linalg import lstsq
 from scipy.stats import norm
 import demand_globalData as globals
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 
 def calculateDistance(origin,destination):
@@ -139,6 +141,13 @@ def gravityModel(dataSet):
 
     return demand_lst
 
+def write2Excel(data):
+    networkData = globals.networkData
+
+    data = pd.DataFrame(data, columns=networkData.loc[:,'ICAO'], index=networkData.loc[:,'ICAO'])
+    data.to_excel('demandForecast.xlsx')
+    return
+
 
 def linearCityDataInterp(targetYear, dataSet1, dataSet2):
 
@@ -182,30 +191,24 @@ def VVgravityModel(comparisonData):
     demandComputed = gravityModel(comparisonData)
 
     numberOfAirports = len(comparisonData['city'])
-    demandData_lst = np.reshape(demandData,(1,numberOfAirports*numberOfAirports))[0]
+    demandData_lst   = np.reshape(demandData,(1,numberOfAirports*numberOfAirports))[0]
     demandComputed_lst = np.reshape(demandComputed,(1,numberOfAirports*numberOfAirports))[0]
 
     error = demandComputed_lst - demandData_lst
-    # error = error[0]
-    # error = error[error<200]
+    error = pd.DataFrame(error,columns=['2015'])
 
-    mu, std = norm.fit(error)
+    median = error.median().values[0]
+    q1 = error.quantile(0.25).values[0]
+    q3 = error.quantile(0.75).values[0]
+    IQR = q3 - q1
+    minBox = q1 - (1.5*IQR)
+    maxBox = q3 + (1.5*IQR)
 
-    plt.figure('Gravity Model Error')
-    plt.subplot(2,1,1)
-    plt.title('Histogram of the error of the '+str(year)+' demand')
-    plt.hist(error, 100, edgecolor='k')
-
-    xmin, xmax = plt.xlim()
-
-    plt.subplot(2,1,2)
-    x = np.linspace(-150, 150, 100)
-    p = norm.pdf(x, mu, std)
-    plt.plot(x, p, 'k')
-    normDistrTitle = '$\mu$ ' + str(round(mu,2)) + ', $\sigma$ ' + str(round(std,2))
-    plt.title(normDistrTitle)
-    plt.grid()
-    plt.xlabel('Error - Demand')
+    plt.figure('Error Boxplot', figsize=[7,7])
+    sns.set(font_scale=1.7)
+    sns.set_style(style="whitegrid")
+    sns.boxplot(data=error, width=0.4)
+    plt.ylabel('error in demand [-]')
 
     return
 

@@ -119,6 +119,19 @@ CASK = pd.DataFrame(CASK_lst,columns=networkData['city'],index=networkData['city
 RASK = pd.DataFrame(RASK_lst,columns=networkData['city'],index=networkData['city'])
 OperProfit = pd.DataFrame(operatingProfit,columns=networkData['city'],index=networkData['city'])
 
-totalProfit = sum(OperProfit.sum()) - Cl
+ASK[ASK==0] = np.nan
+RPK[RPK==0] = np.nan
+LF[LF==0]   = np.nan
+CASK[CASK==0] = np.nan
+RASK[RASK==0] = np.nan
+OperProfit[OperProfit==0] = np.nan
+
+ASK_avg         = ASK.mean().mean()
+RPK_avg         = RPK.mean().mean()
+LF_avg          = LF.mean().mean()
+CASK_avg        = CASK.mean().mean()
+RASK_avg        = RASK.mean().mean()
+OperProfit_avg  = OperProfit.mean().mean()
+totalProfit     = OperProfit.sum().sum() - Cl
 
 print()

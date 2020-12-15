@@ -1,6 +1,7 @@
 import demand_globalData as globals
 import numpy as np
 import pandas as pd
+import ast
 
 
 
@@ -8,12 +9,12 @@ def formatOutput(m):
 
     networkData = globals.networkData
 
-    x_optimised = pd.DataFrame(columns=networkData['city'], index=networkData['city'])  # Direct flow from airport i to j
-    w_optimised = pd.DataFrame(columns=networkData['city'], index=networkData['city'])  # Direct flow from airport i to j
-    z_optimised = pd.DataFrame(columns=networkData['city'], index=networkData['city'])  # Direct flow from airport i to j
+    x_optimised = pd.DataFrame(columns=networkData['ICAO'], index=networkData['ICAO'])  # Direct flow from airport i to j
+    w_optimised = pd.DataFrame(columns=networkData['ICAO'], index=networkData['ICAO'])  # Direct flow from airport i to j
+    z_optimised = pd.DataFrame(columns=networkData['ICAO'], index=networkData['ICAO'])  # Direct flow from airport i to j
     AC_optimised = pd.DataFrame(columns=['Number of AC'])
-    for i in range(len(networkData['city'])):
-        for j in range(len(networkData['city'])):
+    for i in range(len(networkData['ICAO'])):
+        for j in range(len(networkData['ICAO'])):
             z_optimised.iloc[i, j] = []
 
     for var in m.getVars():
@@ -73,6 +74,7 @@ def readOptimizedData():
     x_ij[x_ij == '-'] = 0
     w_ij[w_ij == '-'] = 0
     z_ij[z_ij == '[]'] = 0
+
 
     return x_ij, w_ij, z_ij, AC
 

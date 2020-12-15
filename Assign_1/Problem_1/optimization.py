@@ -82,11 +82,16 @@ for i in airports:
                 cTk = singleAircraftData['Time cost parameter']   # time based costs
                 cfk = singleAircraftData['Fuel cost parameter']   # fuel cost
                 spk = singleAircraftData['Speed']                 # speed of aircraft
-                CLk = singleAircraftData['Weekly lease cost']
+                # CLk = singleAircraftData['Weekly lease cost']
                 CXk = singleAircraftData['Fixed operating cost']
 
                 z[i,j,k] = m.addVar(obj = -(0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk*f/1.5*distance), lb=0, vtype=GRB.INTEGER, name="z[%s,%s,%s]" % (i, j, k))
-                AC[k]    = m.addVar(obj = -CLk , lb=0, vtype=GRB.INTEGER, name="AC[%s]" % (k))
+                
+for k in aircraft:
+    singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
+    CLk = singleAircraftData['Weekly lease cost']
+
+    AC[k]    = m.addVar(obj = -CLk , lb=0, vtype=GRB.INTEGER, name="AC[%s]" % (k))
 
 
 

@@ -24,12 +24,13 @@ def demandForecast():
     # Compute the forecasted 2020 demand and append that to the 2020 data frame
     demand2020_forecast = funct.gravityModel(airlineData['2020'])
     airlineData['2020']['demand'] = demand2020_forecast
+    # funct.write2Excel(demand2020_forecast)
     # funct.VVdemandForecast(airlineData['2020'], airlineData['2015'])    # plot the difference in demand
     # funct.VVdemandForecast(airlineData['2020'], airlineData['2018'])    # plot the difference in demand
 
     globals.airlineData = airlineData
     return
 
+# demandForecast()
 # print()
 # plt.show()
-# demandForecast()

@@ -1,0 +1,81 @@
+
+Gurobi 9.1.0 (win64) logging started Mon Dec 14 19:13:21 2020
+
+Changed value of parameter LogFile to logs/final
+   Prev:   Default: 
+Gurobi Optimizer version 9.1.0 build v9.1.0rc0 (win64)
+Thread count: 4 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 136 rows, 33442 columns and 136441 nonzeros
+Model fingerprint: 0xbfd08c03
+Variable types: 0 continuous, 33442 integer (33442 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [8e+02, 4e+03]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+Found heuristic solution: objective 205637.16667
+Presolve removed 6 rows and 9 columns
+Presolve time: 0.24s
+Presolved: 130 rows, 33433 columns, 136430 nonzeros
+Found heuristic solution: objective 201648.16667
+Variable types: 0 continuous, 33433 integer (33433 binary)
+
+Root relaxation: objective 7.339317e+04, 789 iterations, 0.32 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+H    0     0                    73393.166667 8662.00000  88.2%     -    0s
+     0     0          -    0      73393.1667 73393.1667  0.00%     -    0s
+
+Explored 0 nodes (8020 simplex iterations) in 0.82 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 3: 73393.2 201648 205637 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 7.339316666667e+04, best bound 7.339316666667e+04, gap 0.0000%
+
+Solutionx[27] 1.000000 
+x[72] 1.000000 
+x[118] 1.000000 
+x[132] 1.000000 
+x[188] 1.000000 
+x[2321] 1.000000 
+x[3606] 1.000000 
+x[5832] 1.000000 
+x[6057] 1.000000 
+x[7093] 1.000000 
+x[7676] 1.000000 
+x[9000] 1.000000 
+x[9076] 1.000000 
+x[9175] 1.000000 
+x[10079] 1.000000 
+x[10274] 1.000000 
+x[11790] 1.000000 
+x[12659] 1.000000 
+x[14289] 1.000000 
+x[14727] 1.000000 
+x[14794] 1.000000 
+x[14898] 1.000000 
+x[16442] 1.000000 
+x[16664] 1.000000 
+x[17149] 1.000000 
+x[17181] 1.000000 
+x[17419] 1.000000 
+x[18849] 1.000000 
+x[19558] 1.000000 
+x[20397] 1.000000 
+x[21353] 1.000000 
+x[21506] 1.000000 
+x[21991] 1.000000 
+x[24918] 1.000000 
+x[25645] 1.000000 
+x[29949] 1.000000 
+x[30031] 1.000000 
+x[30408] 1.000000 
+x[30532] 1.000000 
+x[31219] 1.000000 
+x[31815] 1.000000 
+x[32671] 1.000000 
+x[32849] 1.000000 

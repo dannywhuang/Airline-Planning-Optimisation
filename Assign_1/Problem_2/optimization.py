@@ -5,7 +5,33 @@ import ast
 from gurobipy import *
 from objectLoader import load_obj, save_obj
 import collections
+import os
+import glob
+import time
+import matplotlib.pyplot as plt
 
+def graph(x,y):
+    fig, ax = plt.subplots()
+    plt.suptitle("Objective function value for each column generation iteration",fontsize=16)
+    plt.rcParams["font.size"] = "12"
+    plt.rcParams["axes.labelsize"] = "12"
+    ax.set_ylabel('Objective [MU]', fontsize=12.0)
+    ax.set_xlabel('Iteration [-]', fontsize=12.0)
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    ax.tick_params(axis='both', which='minor', labelsize=12)
+
+    plt.plot(x, y)
+    plt.grid()
+    plt.legend()
+    ax.autoscale()
+    plt.show()
+
+    return
+
+# clear log files
+files = glob.glob('logs/*')
+for f in files:
+    os.remove(f)
 
 # ________________________________
 # fixed cost per day
@@ -62,6 +88,7 @@ for p in P:
 
 # column generation
 iterationCount = 1
+start_time = time.time()
 while True:
     print("\n")
     print("Iteration", iterationCount)
@@ -111,6 +138,7 @@ while True:
     # add 50 pairings with best slack, if slack  > 0
     for i in range(50):
         if sortedSlack[i][1] > 0:
+            # print("Iteration " + str(iterationCount) + ", pairing: " + str(sortedSlack[i][0]) + ", slack: " + str(sortedSlack[i][1]))
             pCurrent = np.append(pCurrent, sortedSlack[i][0])
         else:
             break
@@ -124,8 +152,11 @@ while True:
         if all(abs(i) <= 0.001 for i in difference[-5:]):
             break
 
+graph(range(1,iterationCount),objectiveValues)
 
-
+print("\n")
+print("The column generation algorithm took")
+print("--- %s seconds ---" % (time.time() - start_time))
 # now solve the actual problem with binary variables
 print("\n")
 print("Amount of pairings: ",len(pCurrent))

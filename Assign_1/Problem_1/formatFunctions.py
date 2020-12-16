@@ -66,9 +66,9 @@ def formatOutput(m):
 
 
 def readOptimizedData():
-    x_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='x_ij')
-    w_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='w_ij')
-    z_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='z_ij')
+    x_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='x_ij',index_col=0)
+    w_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='w_ij',index_col=0)
+    z_ij = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='z_ij',index_col=0)
     AC   = pd.read_excel(open('optimizationOutput.xlsx', 'rb'),sheet_name='AC')
 
     x_ij[x_ij == '-'] = 0

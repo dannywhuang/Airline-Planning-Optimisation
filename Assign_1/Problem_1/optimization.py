@@ -19,15 +19,11 @@ airlineData  = globals.airlineData
 networkData  = globals.networkData
 aircraftData = aircraftLoad.loadData()
 
-
-
 YearToAnalyze = '2020'
 
 airlineData = airlineData[YearToAnalyze]
 q = airlineData['demand']
 
-
-print(aircraftData.loc['Speed'].iloc[0])
 
 airports_lst = np.array(networkData['city'])
 airportsRunway_lst = np.array(networkData['rnw'])
@@ -35,7 +31,6 @@ airports = range(len(airports_lst))
 
 g = np.ones(len(airports_lst))
 g[airports_lst=='Paris'] = 0
-print(g)
 
 aircraft = range(len(aircraftData.columns))
 
@@ -61,7 +56,6 @@ for k in aircraft:
     R[k] = singleAircraftData['Maximum range']
     RunAC[k] = singleAircraftData['Runway required']
 
-
 # Add variables that are in the objective function as well
 for i in airports:
     for j in airports:
@@ -78,21 +72,17 @@ for i in airports:
             for k in aircraft:
                 singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
 
-                # CXk = aircraftData.loc[ '' ,  ]     # fixed operating cost
                 cTk = singleAircraftData['Time cost parameter']   # time based costs
                 cfk = singleAircraftData['Fuel cost parameter']   # fuel cost
                 spk = singleAircraftData['Speed']                 # speed of aircraft
-                # CLk = singleAircraftData['Weekly lease cost']
-                CXk = singleAircraftData['Fixed operating cost']
+                CXk = singleAircraftData['Fixed operating cost']  # fixed operating cost
 
                 z[i,j,k] = m.addVar(obj = -(0.7 + 0.3*g[i]*g[j]) * (CXk + cTk * distance/spk + cfk*f/1.5*distance), lb=0, vtype=GRB.INTEGER, name="z[%s,%s,%s]" % (i, j, k))
                 
 for k in aircraft:
     singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
-    CLk = singleAircraftData['Weekly lease cost']
-
+    CLk = singleAircraftData['Weekly lease cost'] # weekly lease cost
     AC[k]    = m.addVar(obj = -CLk , lb=0, vtype=GRB.INTEGER, name="AC[%s]" % (k))
-
 
 
 m.update()
@@ -107,37 +97,12 @@ m.addConstrs(z[i,j,k] <= (10000 if funct.calculateDistance(i, j) <= R[k] else 0)
 m.addConstrs(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0) for i in airports for j in airports for k in aircraft if i!=j)
 
 
-
-#
-# # Define constraints
-# for i in range(numberOfAirports):
-#     for j in range(numberOfAirports):
-#         if i!=j:
-#             origin = airports_lst[i]    # To check the current airport origin
-#             dest   = airports_lst[j]    # To check the current airport destination
-#             distance = funct.calculateDistance(origin, dest)
-#
-#             m.addConstr(x[i,j] + w[i,j] <= q[i,j], name="C1") # C1
-#             m.addConstr(w[i, j] <= q[i,j] * g[i] * g[j], name="C2") # C2
-#             for k in range(numberOfAircraft):
-#                 singleAircraftData = aircraftData.iloc[:, k]  # To check the current aircraft type in the iteration
-#
-#                 m.addConstr(x[i, j] + quicksum(w[i, j]*(1-g[j]) for j in range(numberOfAirports) if i!=j) + quicksum(w[i, j]*(1-g[i]) for i in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k]*s[k]*globals.LF for k in range(numberOfAircraft)), name="C3")  # C3
-#
-#                 m.addConstr(quicksum(z[i, j, k] for j in range(numberOfAirports) if i!=j) <= quicksum(z[j, i, k] for j in range(numberOfAirports) if i!=j), name="C4")  # C4
-#
-#                 m.addConstr(quicksum(quicksum((distance / sp[k] + TAT[k]*(1.5-0.5*g[j])) * z[i, j, k] for i in range(numberOfAirports)if i!=j) for j in range(numberOfAirports) if i!=j) <= BT * AC[k], name="C5")  # C5
-#
-#                 m.addConstr(z[i,j,k] <= (10000 if distance <= R[k] else 0), name="C6")  # c6
-#
-#                 m.addConstr(z[i,j,k] <= (10000 if ((RunAC[k] <= airportsRunway_lst[i]) and (RunAC[k] <= airportsRunway_lst[j])) else 0), name="C7")   # c7
-
 if __name__ == '__main__':
     m.update()
-    # m.write('test.lp')
+    m.write('optimization.lp')
     # Set time constraint for optimization (5minutes)
     # m.setParam('TimeLimit', 1 * 60)
-    # m.setParam('MIPgap', 0.009)
+    m.setParam('MIPgap', 0.0)
     # m.computeIIS()
     # m.write("IIS.ilp")
     m.optimize()

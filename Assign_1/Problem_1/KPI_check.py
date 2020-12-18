@@ -4,8 +4,6 @@ import demand_globalData as globals
 import demand_functions as funct
 import aircraft_loadData as aircraftLoad
 import ast
-import numpy as np
-import pandas as pd
 
 demand.demandForecast()
 networkData = globals.networkData
@@ -71,9 +69,6 @@ for i in range(No_airports):
 
 print("operational costs", opCost)
 
-
-
-
 # Total ac lease cost
 Cl = 0
 for ac in AC.iloc[:,0]:
@@ -84,6 +79,4 @@ for ac in AC.iloc[:,0]:
 
 print("lease cost", Cl)
 print("net revenue", (rev-opCost-Cl))
-
-print()
 

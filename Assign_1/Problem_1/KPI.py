@@ -25,6 +25,27 @@ CASK_lst = np.zeros((No_airports,No_airports)) # Cost per ASK
 RASK_lst = np.zeros((No_airports,No_airports)) # revenue per ASK
 operatingProfit = np.zeros((No_airports,No_airports)) # operating profit
 
+
+
+No_acType_flight = np.array([182, 44, 162])
+leasCost_acType  = np.array([45000, 34000, 320000])
+avgCost_flight   = leasCost_acType/No_acType_flight
+dist_acType = [0,0,0]
+dist_acType = np.array([65266.09023764141, 33721.224188674685, 126699.88394319483])
+avgCost_flight = leasCost_acType/dist_acType
+
+# Total ac lease cost
+Cl = 0
+for ac in AC.iloc[:,0]:
+    ac_type = int(ac[-1])
+    leaseCost = aircraftData.loc['Weekly lease cost','Aircraft '+str(int(ac_type+1))] 
+    no_flights_ac = float(AC.loc[ac_type,'Number of AC'])
+    # leasCost_acType[ac_type] += leaseCost * no_flights_ac
+    Cl += leaseCost * no_flights_ac
+
+
+
+
 for i in range(No_airports):
     for j in range(No_airports):
         if i!=j:
@@ -86,11 +107,15 @@ for i in range(No_airports):
                 Cx_ij  = 0  # fixed operating cost
                 Ct_ij  = 0  # time-dependent cost
                 Cf_ij  = 0  # fuel cost
+                leaseCost = 0
+                
                 for k in range(len(zij)):
                     
                     ac_type = zij[k][0]
                     no_flights_ac = zij[k][1]
                     singleAircraftData = aircraftData.iloc[:, ac_type]
+
+                    # No_acType_flight[ac_type] += no_flights_ac
 
                     seats    = float(aircraftData.loc['Seats','Aircraft '+str(int(ac_type+1))])
                     spk = singleAircraftData['Speed']  # speed of aircraft
@@ -106,11 +131,14 @@ for i in range(No_airports):
                     cfk = singleAircraftData['Fuel cost parameter']  # fuel cost
                     Cf_ij += cfk * 1.42 / 1.5 * distance * no_flights_ac
 
+                    leaseCost += avgCost_flight[ac_type] * no_flights_ac * distance
+                    # dist_acType[ac_type] += distance * no_flights_ac
+
                 # weekly load factor on flight leg
                 LF_ij = RPK_ij/ASK_ij
 
                 # weekly operating cost on flight leg
-                C_ij    = (Cx_ij + Ct_ij + Cf_ij) * (0.7+0.3*gi*gj)
+                C_ij    = (Cx_ij + Ct_ij + Cf_ij) * (0.7+0.3*gi*gj) + leaseCost
                 CASK_ij = C_ij / ASK_ij
 
                 # revenue
@@ -126,13 +154,6 @@ for i in range(No_airports):
                 RASK_lst[i,j] = RASK_ij
                 operatingProfit[i,j] = operatingProfit_ij
 
-# Total ac lease cost
-Cl = 0
-for ac in AC.iloc[:,0]:
-    ac_type = int(ac[-1])
-    leaseCost = aircraftData.loc['Weekly lease cost','Aircraft '+str(int(ac_type+1))] 
-    no_flights_ac = float(AC.loc[ac_type,'Number of AC'])
-    Cl += leaseCost * no_flights_ac
 
 ASK  = pd.DataFrame(ASK_lst,columns=networkData['city'],index=networkData['city'])
 RPK  = pd.DataFrame(RPK_lst,columns=networkData['city'],index=networkData['city'])
@@ -148,12 +169,27 @@ CASK[CASK==0] = np.nan
 RASK[RASK==0] = np.nan
 OperProfit[OperProfit==0] = np.nan
 
-ASK_avg         = ASK.mean().mean()
-RPK_avg         = RPK.mean().mean()
-LF_avg          = LF.mean().mean()
-CASK_avg        = CASK.mean().mean()
-RASK_avg        = RASK.mean().mean()
-OperProfit_avg  = OperProfit.mean().mean()
-totalProfit     = OperProfit.sum().sum() - Cl
+ASK_tot = ASK.sum().sum()
+print("Weekly ASK: ", ASK_tot)
+
+RPK_tot = RPK.sum().sum()
+print('Weekly RPK: ', RPK_tot)
+
+LF_tot  = RPK_tot/ASK_tot
+print('Weekly LF: ', LF_tot)
+
+Cost_tot = (CASK*ASK).sum().sum()
+CASK_tot = Cost_tot/ASK_tot
+print('Weekly CASK: ', CASK_tot)
+
+Rev_tot  = (RASK*ASK).sum().sum()
+RASK_tot = Rev_tot/ASK_tot 
+print('Weekly RASK: ', RASK_tot)
+
+# OperProfit_avg  = OperProfit.mean().mean()
+# print('Weekly average operating profit: ', OperProfit_avg)
+
+totalProfit     = OperProfit.sum().sum()
+print('Weekly total profit: ', totalProfit)
 
 print()

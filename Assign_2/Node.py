@@ -1,7 +1,8 @@
 class Node:
-    def __init__(self, airport, stage):
+    def __init__(self, airport, stageNumber):
         self.airport = airport
         self.profit = None
-        self.nextNode = None
-        self.vertices = []
-        self.stage = stage
+        self.nextNodeIATA = None
+        self.nextNodeStage = None
+        self.vertices = {}
+        self.stageNumber = stageNumber

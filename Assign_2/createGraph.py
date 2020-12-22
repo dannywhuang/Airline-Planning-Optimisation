@@ -1,4 +1,5 @@
 import pickle
+from math import ceil
 
 def save_obj(obj, name ):
     with open('obj/'+ name + '.pkl', 'wb') as f:
@@ -28,7 +29,7 @@ for type, aircraft in Fleet.aircraftList.items():
     stagesList = [None] * numberOfStages
     # create last stage and add HUB node
     airportHUB = airportsList[Airports.HUB]
-    lastStage = Stage(TOTAL_HOURS)
+    lastStage = Stage(TOTAL_HOURS, numberOfStages-1)
     lastStage.addNode(airportHUB)
     stagesList[-1] = lastStage
 
@@ -36,8 +37,10 @@ for type, aircraft in Fleet.aircraftList.items():
     # create other stages
     for i in range(1, numberOfStages):
         stageTime = TOTAL_HOURS-i*0.1
-        newStage = Stage(stageTime)
-        stagesList[numberOfStages - i - 1] = newStage
+
+        stageNumber = numberOfStages - i - 1
+        newStage = Stage(stageTime, stageNumber)
+        stagesList[stageNumber] = newStage
         # for each stage create airport nodes
         newStage.addNode(airportHUB)
         for IATA, airport in Airports.airportsList.items():
@@ -52,8 +55,11 @@ for type, aircraft in Fleet.aircraftList.items():
     print("Creating vertices...")
     # iterate over all stages starting from last stage
     for i in range(len(stagesList)):
-        currentStage = stagesList[len(stagesList) - i - 1]
 
+        stageNumber = numberOfStages - i - 1
+        currentStage = stagesList[stageNumber]
+        if i%10==0:
+            print('Current stage', i)
         # iterate over all nodes in current stage
         for IATA, currentNode in currentStage.nodesList.items():
 
@@ -62,17 +68,21 @@ for type, aircraft in Fleet.aircraftList.items():
 
             # iterate over all possible destinations from current airport node
             for index, row in currentAirportDemand.iterrows():
+                # current destination
                 currentDestinationIATA = row['To']
+                destinationAirport = airportsList[currentDestinationIATA]
 
-                # iterate over all stages after current stage
-                for j in range(i):
-                    iterStage = stagesList[len(stagesList) - i + j]
-                    stageTimeDifference = iterStage.time - currentStage.time
+                # travel time from origin to destination airport
+                totalTravelTime = Airports.calculateDistance(currentNode.airport, destinationAirport) / aircraft.speed + aircraft.TAT / 60
 
-                    if currentDestinationIATA in iterStage.nodesList:
-                        iterNode = iterStage.nodesList[currentDestinationIATA]
-                        totalTravelTime = Airports.calculateDistance(currentNode.airport, iterNode.airport)/aircraft.speed + aircraft.TAT/60
-                        if totalTravelTime < stageTimeDifference or currentNode.airport.IATA == iterNode.airport.IATA:
-                            currentNode.vertices.append(iterNode)
-                            break
+                # next stage number where the destination airport can be reached
+                diffStageNumber = int(ceil(totalTravelTime*10))
+                nextStageNumber = stageNumber + 1 if currentNode.airport.IATA == currentDestinationIATA else stageNumber + diffStageNumber
+
+                # if stage number is within the 5 days and if the airport node exists in that stage
+                if (nextStageNumber <= numberOfStages-1 and currentDestinationIATA in stagesList[nextStageNumber].nodesList):
+                    # add airport IATA as key and stage number as value
+                    currentNode.vertices[destinationAirport.IATA] = nextStageNumber
+
+    # save a stagesList for each aircraft type
     save_obj(stagesList, type)

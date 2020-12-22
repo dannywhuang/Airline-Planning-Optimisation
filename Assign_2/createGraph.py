@@ -76,7 +76,7 @@ for type, aircraft in Fleet.aircraftList.items():
                 totalTravelTime = Airports.calculateDistance(currentNode.airport, destinationAirport) / aircraft.speed + aircraft.TAT / 60
 
                 # next stage number where the destination airport can be reached
-                diffStageNumber = int(ceil(totalTravelTime*10))
+                diffStageNumber = int(ceil((totalTravelTime*60)/STAGE_RESOLUTION))
                 nextStageNumber = stageNumber + 1 if currentNode.airport.IATA == currentDestinationIATA else stageNumber + diffStageNumber
 
                 # if stage number is within the 5 days and if the airport node exists in that stage

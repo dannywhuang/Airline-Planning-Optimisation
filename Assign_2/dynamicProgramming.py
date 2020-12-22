@@ -26,7 +26,7 @@ STAGE_RESOLUTION = 6 # 6 minutes
 DEMAND_CAPTURE_PREVIOUS = 0.20 # 20% of previous two bins can capture
 TOTAL_HOURS = 120
 
-numberOfStages = int(TOTAL_HOURS*60 / 6 + 1)
+numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
 
 

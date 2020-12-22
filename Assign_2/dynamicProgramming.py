@@ -26,7 +26,7 @@ STAGE_RESOLUTION = 6 # 6 minutes
 DEMAND_CAPTURE_PREVIOUS = 0.20 # 20% of previous two bins can capture
 TOTAL_HOURS = 120
 
-numberOfStages = int(TOTAL_HOURS*60 / 6 + 1)
+numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
 
 
@@ -36,21 +36,28 @@ while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
             stagesList = load_obj(type)
 
-            # IMPLEMENT: do dynamic programming
             print("Dynamic programming starts now...")
             # iterate over all stages starting from last stage
             for i in range(len(stagesList)):
                 print("Current stage number: ", i)
                 currentStage = stagesList[len(stagesList) - i - 1]
 
-                # iterate over all nodes in current stage
+                # iterate over all nodes in current stage, current node is ORIGIN
                 for IATA, currentNode in currentStage.nodesList.items():
 
-                    # iterate over all vertices of this node
-                    pass
+                    currentNodeProfit = {}
+                    # iterate over all vertices of this node, which are the DESTINATIONS
+                    for iterIATA, iterStageNumber in currentNode.vertices.items():
+                        # IMPLEMENT: check demand of origin, destination
+                        # IMPLEMENT: calculate profit of vertices
+
+                        pass # remove pass when finished
+                    # IMPLEMENT: find max profit vertice
+                    # IMPLEMENT: assign node IATA, stage number and corresponding profit to currentNode (self.profit, self.nextNodeStage, self.nextNodeIATA)
 
 
-            profit[type] = 0 # find total profit for aircraft type
+
+            profit[type] = 0 # IMPLEMENT: find total profit for aircraft type
 
 
     if not all(value > 0 for value in profit.values()): # if no aircraft type gives a profitable route, stop adding new aircraft

@@ -3,6 +3,11 @@ from Fleet import Fleet
 from Demand import Demand
 from Financials import Financials
 from Stage import Stage
+import pickle
+
+def load_obj(name ):
+    with open('obj/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
 
 Airports = Airports()
 Demand = Demand()
@@ -21,36 +26,28 @@ STAGE_RESOLUTION = 6 # 6 minutes
 DEMAND_CAPTURE_PREVIOUS = 0.20 # 20% of previous two bins can capture
 TOTAL_HOURS = 120
 
-numberOfStages = int(120*60 / 6 + 1)
-stagesList = [None]*numberOfStages
+numberOfStages = int(TOTAL_HOURS*60 / 6 + 1)
+
+
 
 while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     profit = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
-
-            # create last stage and add HUB node
-            airportHUB = airportsList[Airports.HUB]
-            lastStage = Stage(TOTAL_HOURS)
-            lastStage.addNode(airportHUB)
-            stagesList[-1] = lastStage
-
-            # create other stages
-            for i in range(1, numberOfStages):
-                stageTime = TOTAL_HOURS-i*0.1
-                newStage = Stage(stageTime)
-                stagesList[numberOfStages - i - 1] = newStage
-                # for each stage create airport nodes
-                newStage.addNode(airportHUB)
-                for IATA, airport in Airports.airportsList.items():
-                    # only add airport nodes to stage that have the runway required
-
-                    if airport.runway > aircraft.runwayRequired:
-                        # only add airport if you can still reach HUB before end of day 5
-                        if (Airports.calculateDistance(airport, airportHUB)/aircraft.speed + aircraft.TAT/60) < TOTAL_HOURS-stageTime:
-                            newStage.addNode(airport)
+            stagesList = load_obj(type)
 
             # IMPLEMENT: do dynamic programming
+            print("Dynamic programming starts now...")
+            # iterate over all stages starting from last stage
+            for i in range(len(stagesList)):
+                print("Current stage number: ", i)
+                currentStage = stagesList[len(stagesList) - i - 1]
+
+                # iterate over all nodes in current stage
+                for IATA, currentNode in currentStage.nodesList.items():
+
+                    # iterate over all vertices of this node
+                    pass
 
 
             profit[type] = 0 # find total profit for aircraft type

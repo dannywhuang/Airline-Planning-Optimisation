@@ -41,17 +41,16 @@ while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 newStage = Stage(stageTime)
                 stagesList[numberOfStages - i - 1] = newStage
                 # for each stage create airport nodes
+                newStage.addNode(airportHUB)
                 for IATA, airport in Airports.airportsList.items():
                     # only add airport nodes to stage that have the runway required
 
                     if airport.runway > aircraft.runwayRequired:
                         # only add airport if you can still reach HUB before end of day 5
                         if (Airports.calculateDistance(airport, airportHUB)/aircraft.speed + aircraft.TAT/60) < TOTAL_HOURS-stageTime:
-                            print(numberOfStages-i-1)
                             newStage.addNode(airport)
 
             # IMPLEMENT: do dynamic programming
-
 
 
             profit[type] = 0 # find total profit for aircraft type

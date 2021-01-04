@@ -4,6 +4,7 @@ from Demand import Demand
 from Financials import Financials
 from Stage import Stage
 import pickle
+import operator
 from Node_profit import Node_profit
 
 
@@ -14,6 +15,7 @@ def load_obj(name ):
 Airports = Airports()
 Demand = Demand()
 Fleet = Fleet()
+Financials = Financials()
 
 airportsList = Airports.airportsList
 
@@ -30,65 +32,73 @@ TOTAL_HOURS = 120
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
-
-
 while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     profit = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
             stagesList = load_obj(type)
 
-            print("Dynamic programming starts now...")
+            print("Dynamic programming starts now ...")
             # iterate over all stages starting from last stage
             for i in range(len(stagesList)):
-                print("Current stage number: ", i)
+                print("Current stage number: ", len(stagesList) - i - 1)
                 currentStage = stagesList[len(stagesList) - i - 1]
 
                 # iterate over all nodes in current stage, current node is ORIGIN
                 for IATA, currentNode in currentStage.nodesList.items():
 
+                    origin = airportsList[IATA]
                     currentAirportDemand = Demand.data.loc[Demand.data['From'] == IATA]  # added
-
-                    currentNodeProfit = {}
+                    
+                    verticeProfit = {}
                     # iterate over all vertices of this node, which are the DESTINATIONS
                     for iterIATA, iterStageNumber in currentNode.vertices.items():
 
-                        # IMPLEMENT: check demand of origin, destination
-                        cap = Fleet.aircraftList[type].capacity
-                        destination = currentAirportDemand[currentAirportDemand['To'] == iterIATA]
+                        destination = airportsList[iterIATA]
                         bin_num     = currentStage.binNumber
-                        demand      = float(destination[bin_num])
 
-                        if cap >= demand  and bin_num >1:                               # check other constraints
-                            demand_1before = float(destination[bin_num - 1])
-                            demand_2before = float(destination[bin_num - 2])
-                            cap_left = cap-demand
-                            DEMAND_CAPTURE_MAX = DEMAND_CAPTURE_PREVIOUS*(demand_1before+demand_2before)
-                            Capture = cap_left if DEMAND_CAPTURE_MAX-cap_left > 0 else DEMAND_CAPTURE_MAX
-                            cargo = demand + Capture
+                        # IMPLEMENT: check demand of origin, destination
+                        OrigDestDemand = currentAirportDemand.loc[currentAirportDemand['To'] == destination.IATA].drop(['From','To'], axis=1)    # origin destionation demand
+
+                        directDemand = float( OrigDestDemand.iloc[0,bin_num] )
+                        prevDemand   = float( OrigDestDemand.iloc[0,bin_num-1] )
+                        pprevDemand  = float( OrigDestDemand.iloc[0,bin_num-2] )
+                        flightDemand = directDemand + DEMAND_CAPTURE_PREVIOUS*(prevDemand + pprevDemand)
+
+                        flightCapacity = Fleet.aircraftList[type].capacity
+
+                        if flightDemand > flightCapacity:
+                            cargoFlow = flightCapacity
                         else:
-                            cargo = cap
+                            cargoFlow = flightDemand
 
                         # IMPLEMENT: calculate profit of vertices
-                        revenue = Financials.calculateRevenue(IATA,iterIATA,cargo)
-                        cost    = Financials.calculateCost(IATA,iterIATA,type)
-                        profit  = revenue-cost
-                        # note: leasing cost should not be considered
-                        currentNodeProfit[IATA,iterIATA] = Node_profit(type,IATA,iterIATA,profit,bin_num,iterStageNumber,cargo)
+                        flightRevenue = Financials.calculateRevenue(origin, destination, cargoFlow)
+                        flightCost    = Financials.calculateCost(origin, destination, type) if origin != destination else 0
+                        flightProfit  = flightRevenue - flightCost
+                        oldProfit     = stagesList[iterStageNumber].nodesList[iterIATA].profit 
+                        totalProfit   = oldProfit + flightProfit
 
-                        pass # remove pass when finished
+                        verticeProfit[iterIATA] = totalProfit
 
                     # IMPLEMENT: find max profit vertex
-                    prof = 0
-                    for vertex, node_prof in currentNodeProfit.items():
-                       if node_prof.profit > prof:
-                           vertex_max = vertex
-                           currentNode.profit        = node_prof.profit
-                           currentNode.nextNodestage = node_prof.stage-1
-                           currentNode.nextNodeIATA  = node_prof.destination
-
                     # IMPLEMENT: assign node IATA, stage number and corresponding profit to currentNode (self.profit, self.nextNodeStage, self.nextNodeIATA)
+                    if currentStage.stageNumber == len(stagesList)-1:
+                        currentNode.profit = 0
+                        currentNode.nextNodeIATA = Airports.HUB
+                        currentNode.nextNodeStage = Airports.HUB
+                    else:
+                        profit = max(verticeProfit.values())
+                        nextNodeIATA = max(verticeProfit.items(), key=operator.itemgetter(1))[0]
+                        nextNodeStage = currentNode.vertices[nextNodeIATA]
 
+                        currentNode.profit = profit
+                        currentNode.nextNodeIATA = nextNodeIATA
+                        currentNode.nextNodeStage = nextNodeStage
+                        if flightProfit > 0:
+                            print(flightProfit,totalProfit)
+
+            # CODE BELOW THIS STILL TO BE IMPLEMENTED ================
             profit[type] = 0 # IMPLEMENT: find total profit for aircraft type
             for i in range(len(stagesList)):
                 currentStage = stagesList[len(stagesList) - i - 1]

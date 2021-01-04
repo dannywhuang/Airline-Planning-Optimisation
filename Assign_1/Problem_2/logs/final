@@ -1,5 +1,5 @@
 
-Gurobi 9.1.0 (win64) logging started Tue Dec 15 14:48:28 2020
+Gurobi 9.1.0 (win64) logging started Sat Jan  2 09:23:33 2021
 
 Changed value of parameter LogFile to logs/final
    Prev:   Default: 
@@ -15,7 +15,7 @@ Coefficient statistics:
   RHS range        [1e+00, 1e+00]
 Found heuristic solution: objective 205637.16667
 Presolve removed 7 rows and 17 columns
-Presolve time: 0.02s
+Presolve time: 0.01s
 Presolved: 129 rows, 1419 columns, 5362 nonzeros
 Found heuristic solution: objective 186166.16667
 Variable types: 0 continuous, 1419 integer (1419 binary)
@@ -27,7 +27,7 @@ Root relaxation: objective 7.339317e+04, 773 iterations, 0.02 seconds
 
 *    0     0               0    73393.166667 73393.1667  0.00%     -    0s
 
-Explored 0 nodes (1503 simplex iterations) in 0.06 seconds
+Explored 0 nodes (1503 simplex iterations) in 0.05 seconds
 Thread count was 8 (of 8 available processors)
 
 Solution count 3: 73393.2 186166 205637 

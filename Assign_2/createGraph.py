@@ -1,10 +1,10 @@
 import pickle
 from math import ceil
 
+
 def save_obj(obj, name ):
     with open('obj/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
-
 
 
 from Airports import Airports

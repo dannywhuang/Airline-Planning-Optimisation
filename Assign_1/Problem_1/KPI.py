@@ -28,7 +28,7 @@ operatingProfit = np.zeros((No_airports,No_airports)) # operating profit
 for i in range(No_airports):
     for j in range(No_airports):
         if i!=j:
-            if z_ij.iloc[i, j] != 0:
+            if z_ij.iloc[i, j ] != 0:
                 origin = airports_lst[i]    # To check the current airport origin
                 dest   = airports_lst[j]    # To check the current airport destination
                 distance = funct.calculateDistance(origin, dest)
@@ -39,7 +39,7 @@ for i in range(No_airports):
                 if dest == 'Paris':
                     gj = 0
 
-                direct_ij   = x_ij.iloc[i,j] 
+                direct_ij   = x_ij.iloc[i,j]
                 transfer_ij = 0
                 revenue_w_ij= 0
                 for airport in range(No_airports):  # add transfer passengers that have to first travel to paris to transfer there to their final destination
@@ -87,7 +87,6 @@ for i in range(No_airports):
                 Ct_ij  = 0  # time-dependent cost
                 Cf_ij  = 0  # fuel cost
                 for k in range(len(zij)):
-                    
                     ac_type = zij[k][0]
                     no_flights_ac = zij[k][1]
                     singleAircraftData = aircraftData.iloc[:, ac_type]

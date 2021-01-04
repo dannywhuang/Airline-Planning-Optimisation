@@ -1,5 +1,5 @@
 
-Gurobi 9.1.0 (win64) logging started Tue Dec 15 14:47:27 2020
+Gurobi 9.1.0 (win64) logging started Sat Jan  2 09:22:31 2021
 
 Changed value of parameter LogFile to logs/iteration2
    Prev:   Default: 
@@ -20,7 +20,7 @@ Iteration    Objective       Primal Inf.    Dual Inf.      Time
        0    1.5090092e+05   3.600000e+01   0.000000e+00      0s
       45    1.7309075e+05   0.000000e+00   0.000000e+00      0s
 
-Solved in 45 iterations and 0.01 seconds
+Solved in 45 iterations and 0.00 seconds
 Optimal objective  1.730907500e+05
 
 Solutionx[0] 1.000000 

@@ -1,5 +1,5 @@
 
-Gurobi 9.1.0 (win64) logging started Tue Dec 15 14:47:24 2020
+Gurobi 9.1.0 (win64) logging started Sat Jan  2 09:22:28 2021
 
 Changed value of parameter LogFile to logs/iteration1
    Prev:   Default: 
@@ -13,12 +13,12 @@ Coefficient statistics:
   Bounds range     [0e+00, 0e+00]
   RHS range        [1e+00, 1e+00]
 Presolve removed 136 rows and 136 columns
-Presolve time: 0.01s
+Presolve time: 0.00s
 Presolve: All rows and columns removed
 Iteration    Objective       Primal Inf.    Dual Inf.      Time
        0    2.0563717e+05   0.000000e+00   0.000000e+00      0s
 
-Solved in 0 iterations and 0.01 seconds
+Solved in 0 iterations and 0.00 seconds
 Optimal objective  2.056371667e+05
 
 Solutionx[0] 1.000000 

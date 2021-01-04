@@ -11,3 +11,4 @@ class Fleet:
             self.amount[i] = fl['Fleet']
             self.aircraftList[i] = Aircraft(i, fl['Speed'], fl['Cargo capacity'], fl['Average TAT'], fl['Maximum Range'], fl['Runway Required'], fl['Lease Cost'], fl['Fixed Operating Cost'], fl['Cost per Hour'], fl['Fuel Cost Parameter'])
 
+

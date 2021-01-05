@@ -11,7 +11,7 @@ class Financials:
 
     def calculateRevenue(self, airport1, airport2, flow):
         dist = self.airports.calculateDistance(airport1, airport2)
-        revenue = self.YIELD_PER_RTK * dist * flow
+        revenue = self.YIELD_PER_RTK * dist * flow/1000
         return revenue
 
     def getLeaseCost(self, type):

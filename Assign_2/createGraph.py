@@ -68,7 +68,7 @@ for type, aircraft in Fleet.aircraftList.items():
                 currentAirportDemand = Demand.data.loc[Demand.data['From'] == Airports.HUB]
             # if current node is not hub only consider demands that arrive at the hub
             else:
-                currentAirportDemand = Demand.data.loc[Demand.data['To'] == Airports.HUB]
+                currentAirportDemand = Demand.data.loc[(Demand.data['From'] == IATA) & ((Demand.data['To'] == Airports.HUB) | (Demand.data['To'] == IATA))]
 
             # iterate over all possible destinations from current airport node
             for index, row in currentAirportDemand.iterrows():

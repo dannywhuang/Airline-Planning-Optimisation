@@ -3,6 +3,8 @@ from Fleet import Fleet
 from Demand import Demand
 from Financials import Financials
 from Stage import Stage
+from Route import Route
+from RouteNode import RouteNode
 import pickle
 import operator
 
@@ -31,14 +33,16 @@ TOTAL_HOURS = 120
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
+routesList = []
 
-
-while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
+while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     aircraftProfits = {}
+    stagesListList = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
             print("Aircraft type:", type)
             stagesList = load_obj(type)
+            stagesListList[type] = stagesList
 
             print("Dynamic programming starts now ...")
             # iterate over all stages starting from last stage
@@ -105,15 +109,40 @@ while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
         break
 
     # IMPLEMENT: save aircraft route with highest profit
-    highestAircraftProfit = max(aircraftProfits.values())
-    highestAircraftType = max(aircraftProfits.items(), key=operator.itemgetter(1))[0]
-    
+    # find highest profit value, corresponding aircraft type and stageList
+    highestAircraftProfitValue = max(aircraftProfits.values())
+    highestAircraftProfitType = max(aircraftProfits.items(), key=operator.itemgetter(1))[0]
+    highestAircraftProfitStageList = stagesListList[highestAircraftProfitType]
+    print("Saving aircraft route of aircraft type " + str(highestAircraftProfitType) + " with a profit of " + str(highestAircraftProfitValue))
+
+    # create new route
+    routeToBeAdded = Route(highestAircraftProfitType, highestAircraftProfitValue)
+
+    # set stage counter at first stage and current airport at the hub
+    currentRouteStageCounter = 0
+    currentRouteNodeIATA = Airports.HUB
+
+    while True:
+        currentRouteStage = highestAircraftProfitStageList[currentRouteStageCounter]
+        currentRouteStageNode = currentRouteStage.nodesList[currentRouteNodeIATA]
+        # create RouteNode with current airport, time, and profit left
+        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit)
+        # add RouteNode to Route
+        routeToBeAdded.addRouteNode(currentRouteNode)
+
+        if currentRouteStageCounter == numberOfStages - 1:
+            break
+
+        currentRouteStageCounter = currentRouteStageNode.nextNodeStage
+        currentRouteNodeIATA = currentRouteStageNode.nextNodeIATA
+
+    # add Route to list of routes
+    routesList.append(routeToBeAdded)
+
 
     # IMPLEMENT: remove aircraft used from fleet
+    Fleet.amount[highestAircraftProfitType] -= 1
 
-
-
-    Fleet.amount[type] = Fleet.amount[type] -1
 
     # IMPLEMENT: remove demand transported
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)

@@ -3,9 +3,10 @@ from Fleet import Fleet
 from Demand import Demand
 from Financials import Financials
 from Stage import Stage
+from Route import Route
+from RouteNode import RouteNode
 import pickle
 import operator
-from Node_profit import Node_profit
 
 
 def load_obj(name ):
@@ -32,16 +33,22 @@ TOTAL_HOURS = 120
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
-while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
-    profit = {}
+routesList = []
+
+while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
+    aircraftProfits = {}
+    stagesListList = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
+            print("Aircraft type:", type)
             stagesList = load_obj(type)
+            stagesListList[type] = stagesList
 
             print("Dynamic programming starts now ...")
             # iterate over all stages starting from last stage
             for i in range(len(stagesList)):
-                print("Current stage number: ", len(stagesList) - i - 1)
+                if i % 10 == 0:
+                    print("Current stage number: ", len(stagesList) - i - 1)
                 currentStage = stagesList[len(stagesList) - i - 1]
 
                 # iterate over all nodes in current stage, current node is ORIGIN
@@ -85,8 +92,6 @@ while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     # IMPLEMENT: assign node IATA, stage number and corresponding profit to currentNode (self.profit, self.nextNodeStage, self.nextNodeIATA)
                     if currentStage.stageNumber == len(stagesList)-1:
                         currentNode.profit = 0
-                        currentNode.nextNodeIATA = Airports.HUB
-                        currentNode.nextNodeStage = Airports.HUB
                     else:
                         profit = max(verticeProfit.values())
                         nextNodeIATA = max(verticeProfit.items(), key=operator.itemgetter(1))[0]
@@ -95,26 +100,51 @@ while all(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         currentNode.profit = profit
                         currentNode.nextNodeIATA = nextNodeIATA
                         currentNode.nextNodeStage = nextNodeStage
-                        if flightProfit > 0:
-                            print(flightProfit,totalProfit)
 
-            # CODE BELOW THIS STILL TO BE IMPLEMENTED ================
-            profit[type] = 0 # IMPLEMENT: find total profit for aircraft type
-            for i in range(len(stagesList)):
-                currentStage = stagesList[len(stagesList) - i - 1]
-                for IATA, currentNode in currentStage.nodesList.items():
-                    profit[type] += currentNode.profit
+            # IMPLEMENT: assign profit for aircraft type
+            print(stagesList[0].nodesList[Airports.HUB].profit)
+            aircraftProfits[type] = stagesList[0].nodesList[Airports.HUB].profit
 
-
-    if not all(value > 0 for value in profit.values()): # if no aircraft type gives a profitable route, stop adding new aircraft
+    if all(value <= 0 for value in aircraftProfits.values()): # if no aircraft type gives a profitable route, stop adding new aircraft
         break
 
-    # IMPLEMENT: save aircraft route
-    # IMPLEMENT: remove aircraft used from fleet
+    # IMPLEMENT: save aircraft route with highest profit
+    # find highest profit value, corresponding aircraft type and stageList
+    highestAircraftProfitValue = max(aircraftProfits.values())
+    highestAircraftProfitType = max(aircraftProfits.items(), key=operator.itemgetter(1))[0]
+    highestAircraftProfitStageList = stagesListList[highestAircraftProfitType]
+    print("Saving aircraft route of aircraft type " + str(highestAircraftProfitType) + " with a profit of " + str(highestAircraftProfitValue))
 
-    Fleet.amount[type] = Fleet.amount[type] -1
+    # create new route
+    routeToBeAdded = Route(highestAircraftProfitType, highestAircraftProfitValue)
+
+    # set stage counter at first stage and current airport at the hub
+    currentRouteStageCounter = 0
+    currentRouteNodeIATA = Airports.HUB
+
+    while True:
+        currentRouteStage = highestAircraftProfitStageList[currentRouteStageCounter]
+        currentRouteStageNode = currentRouteStage.nodesList[currentRouteNodeIATA]
+        # create RouteNode with current airport, time, and profit left
+        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit)
+        # add RouteNode to Route
+        routeToBeAdded.addRouteNode(currentRouteNode)
+
+        if currentRouteStageCounter == numberOfStages - 1:
+            break
+
+        currentRouteStageCounter = currentRouteStageNode.nextNodeStage
+        currentRouteNodeIATA = currentRouteStageNode.nextNodeIATA
+
+    # add Route to list of routes
+    routesList.append(routeToBeAdded)
+
+
+    # IMPLEMENT: remove aircraft used from fleet
+    Fleet.amount[highestAircraftProfitType] -= 1
+
 
     # IMPLEMENT: remove demand transported
-
+    # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)
 
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet

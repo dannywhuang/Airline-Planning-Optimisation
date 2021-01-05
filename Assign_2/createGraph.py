@@ -1,10 +1,10 @@
 import pickle
 from math import ceil
 
-
 def save_obj(obj, name ):
     with open('obj/'+ name + '.pkl', 'wb') as f:
         pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
 
 
 from Airports import Airports
@@ -63,8 +63,12 @@ for type, aircraft in Fleet.aircraftList.items():
         # iterate over all nodes in current stage
         for IATA, currentNode in currentStage.nodesList.items():
 
-            # find all demand entries that depart from this node
-            currentAirportDemand = Demand.data.loc[Demand.data['From'] == IATA]
+            # if current node is the hub, consider all demands departing from hub
+            if IATA == Airports.HUB:
+                currentAirportDemand = Demand.data.loc[Demand.data['From'] == Airports.HUB]
+            # if current node is not hub only consider demands that arrive at the hub
+            else:
+                currentAirportDemand = Demand.data.loc[(Demand.data['From'] == IATA) & ((Demand.data['To'] == Airports.HUB) | (Demand.data['To'] == IATA))]
 
             # iterate over all possible destinations from current airport node
             for index, row in currentAirportDemand.iterrows():

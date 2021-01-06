@@ -9,6 +9,10 @@ import pickle
 import operator
 
 
+def save_obj(obj, name ):
+    with open('obj/'+ name + '.pkl', 'wb') as f:
+        pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
+
 def load_obj(name ):
     with open('obj/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
@@ -58,6 +62,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     currentAirportDemand = Demand.data.loc[Demand.data['From'] == IATA]  # added
                     
                     verticeProfit = {}
+                    verticeCargo  = {}
                     # iterate over all vertices of this node, which are the DESTINATIONS
                     for iterIATA, iterStageNumber in currentNode.vertices.items():
 
@@ -65,7 +70,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         bin_num     = currentStage.binNumber
 
                         # IMPLEMENT: check demand of origin, destination
-                        OrigDestDemand = currentAirportDemand.loc[currentAirportDemand['To'] == destination.IATA].drop(['From','To'], axis=1)    # origin destionation demand
+                        OrigDestDemand = currentAirportDemand.loc[currentAirportDemand['To'] == destination.IATA].drop(['From','To'], axis=1)    # origin destination demand
 
                         directDemand = float( OrigDestDemand.iloc[0,bin_num] )
                         prevDemand   = float( OrigDestDemand.iloc[0,bin_num-1] )
@@ -87,19 +92,26 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         totalProfit   = oldProfit + flightProfit
 
                         verticeProfit[iterIATA] = totalProfit
+                        # save cargo
+                        verticeCargo[iterIATA]  = cargoFlow
+
 
                     # IMPLEMENT: find max profit vertex
                     # IMPLEMENT: assign node IATA, stage number and corresponding profit to currentNode (self.profit, self.nextNodeStage, self.nextNodeIATA)
                     if currentStage.stageNumber == len(stagesList)-1:
                         currentNode.profit = 0
+                        currentNode.cargo  = c
                     else:
                         profit = max(verticeProfit.values())
                         nextNodeIATA = max(verticeProfit.items(), key=operator.itemgetter(1))[0]
                         nextNodeStage = currentNode.vertices[nextNodeIATA]
+                        nextNodeCargo = verticeCargo[nextNodeIATA]             # cargo added
 
                         currentNode.profit = profit
                         currentNode.nextNodeIATA = nextNodeIATA
                         currentNode.nextNodeStage = nextNodeStage
+                        currentNode.cargo         = nextNodeCargo              # cargo added
+
 
             # IMPLEMENT: assign profit for aircraft type
             print(stagesList[0].nodesList[Airports.HUB].profit)
@@ -126,7 +138,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
         currentRouteStage = highestAircraftProfitStageList[currentRouteStageCounter]
         currentRouteStageNode = currentRouteStage.nodesList[currentRouteNodeIATA]
         # create RouteNode with current airport, time, and profit left
-        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit)
+        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit, currentRouteStageNode.cargo)  #CARGO ADDED
         # add RouteNode to Route
         routeToBeAdded.addRouteNode(currentRouteNode)
 
@@ -143,6 +155,8 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     # IMPLEMENT: remove aircraft used from fleet
     Fleet.amount[highestAircraftProfitType] -= 1
 
+    save_obj(routesList,"routes")
+    break                                                                                                               # remove***********************
 
     # IMPLEMENT: remove demand transported
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)

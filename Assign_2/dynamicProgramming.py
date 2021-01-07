@@ -48,14 +48,14 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     stagesListList = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
-            print("Aircraft type:", type)
+            print("\n Aircraft type:", type)
             stagesList = load_obj(type)
             stagesListList[type] = stagesList
 
             print("Dynamic programming starts now ...")
             # iterate over all stages starting from last stage
             for i in range(len(stagesList)):
-                if i % 10 == 0:
+                if i % 100 == 0:
                     print("Current stage number: ", len(stagesList) - i - 1)
                 currentStage = stagesList[len(stagesList) - i - 1]
 
@@ -133,7 +133,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     highestAircraftProfitValue = max(aircraftProfits.values())
     highestAircraftProfitType = max(aircraftProfits.items(), key=operator.itemgetter(1))[0]
     highestAircraftProfitStageList = stagesListList[highestAircraftProfitType]
-    print("Saving aircraft route of aircraft type " + str(highestAircraftProfitType) + " with a profit of " + str(highestAircraftProfitValue))
+    print("Saving aircraft route of aircraft type " + str(highestAircraftProfitType) + " with a profit of " + str(highestAircraftProfitValue) + '\n')
 
     # create new route
     routeToBeAdded = Route(highestAircraftProfitType, highestAircraftProfitValue)
@@ -200,7 +200,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-2], newPrevPrevBinFlightDemand) 
                 
                     if newPrevPrevBinFlightDemand < 0:
-                        ... # zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
+                        # ... # zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
                         print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentBin}')
     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet

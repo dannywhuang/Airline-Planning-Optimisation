@@ -21,7 +21,7 @@ for i in range(len(routes[0].routeNodesList)-1):
     cargo  = routes[0].routeNodesList[i].cargo
     origin = routes[0].routeNodesList[i].IATA
     destination = routes[0].routeNodesList[i+1].IATA
-    if cargo != 0:
+    if origin != destination:
         print(round(time, 1), '  ', origin, '   ', destination, "        ", cargo)
 
 

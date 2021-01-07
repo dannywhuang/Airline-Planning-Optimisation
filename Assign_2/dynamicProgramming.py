@@ -207,7 +207,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
 
 save_obj(routesList,"routesList")
 
-with ExcelWriter('routes.xlsx') as writer:
+with ExcelWriter('output/routes.xlsx') as writer:
     for i, rte in enumerate(routesList):
         aircraftNumString = 'num' + str(i) + '_' + rte.aircraftType
         df = pd.DataFrame(columns=['Departure Time', 'Route', 'Arrival Time', 'Cargo', 'Profit'])

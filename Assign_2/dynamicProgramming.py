@@ -26,6 +26,7 @@ Fleet = Fleet()
 Financials = Financials()
 
 airportsList = Airports.airportsList
+demand = Demand.data
 
 BINS_0AM_4AM = [0,6,12,18,24]
 BINS_4AM_8AM = [1,7,13,19,25]
@@ -62,7 +63,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 for IATA, currentNode in currentStage.nodesList.items():
 
                     origin = airportsList[IATA]
-                    currentAirportDemand = Demand.data.loc[Demand.data['From'] == IATA]  # added
+                    currentAirportDemand = demand.loc[demand['From'] == IATA]
                     
                     verticeProfit = {}
                     verticeCargo  = {}
@@ -85,7 +86,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         if flightDemand > flightCapacity:
                             cargoFlow = flightCapacity
                         else:
-                            cargoFlow = flightDemand
+                            cargoFlow = max(0,flightDemand)
 
                         # IMPLEMENT: calculate profit of vertices
                         flightRevenue = Financials.calculateRevenue(origin, destination, cargoFlow)
@@ -115,10 +116,14 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         currentNode.nextNodeStage = nextNodeStage
                         currentNode.cargo         = nextNodeCargo              # cargo added
 
+                    if currentNode.profit < 0 and origin.city == 'Paris':
+                        print()
+
 
             # IMPLEMENT: assign profit for aircraft type
             print(stagesList[0].nodesList[Airports.HUB].profit)
             aircraftProfits[type] = stagesList[0].nodesList[Airports.HUB].profit
+
 
     if all(value <= 0 for value in aircraftProfits.values()): # if no aircraft type gives a profitable route, stop adding new aircraft
         break
@@ -141,7 +146,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
         currentRouteStage = highestAircraftProfitStageList[currentRouteStageCounter]
         currentRouteStageNode = currentRouteStage.nodesList[currentRouteNodeIATA]
         # create RouteNode with current airport, time, and profit left
-        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit, currentRouteStageNode.cargo)  #CARGO ADDED
+        currentRouteNode = RouteNode(currentRouteNodeIATA, currentRouteStage.time, currentRouteStageNode.profit, currentRouteStageNode.cargo, currentRouteStageNode.stageNumber, currentRouteStage.binNumber)  #CARGO ADDED
         # add RouteNode to Route
         routeToBeAdded.addRouteNode(currentRouteNode)
 
@@ -158,14 +163,47 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     # IMPLEMENT: remove aircraft used from fleet
     Fleet.amount[highestAircraftProfitType] -= 1
 
-    save_obj(routesList,"routes")
-    break                                                                                                               # remove***********************
-
     # IMPLEMENT: remove demand transported
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)
+    routeFlights = routeToBeAdded.routeNodesList
+    for i in range(len(routeFlights)-1):
+        currentNode = routeFlights[i]
+        nextNode    = routeFlights[i+1]
 
+        if currentNode.cargo != 0:
+            currentBin = currentNode.binNumber
+            currentStageNumber = currentNode.stageNumber
+            currentCargo = currentNode.cargo
+            indices_OD = (demand['From'] == currentNode.IATA ) & (demand['To'] == nextNode.IATA )
+
+            origDestDemand  = demand.loc[indices_OD].drop(['From','To'], axis=1)
+
+            binFlightDemand = float( origDestDemand.iloc[0, currentBin] )
+            prevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-1] )
+            prevPrevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-2] )
+
+            newBinFlightDemand = binFlightDemand - currentCargo
+            demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
+            
+            if newBinFlightDemand < 0:
+                newPrevBinFlightDemand = prevBinFlightDemand - abs(newBinFlightDemand)
+                newBinFlightDemand = 0
+
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
+
+                if newPrevBinFlightDemand < 0:
+                    newPrevPrevBinFlightDemand = prevPrevBinFlightDemand - abs(newPrevBinFlightDemand)
+                    newPrevBinFlightDemand = 0
+
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-2], newPrevPrevBinFlightDemand) 
+                
+                    if newPrevPrevBinFlightDemand < 0:
+                        ... # zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
+                        print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentBin}')
+    
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
-
 
 save_obj(routesList,"routesList")
 

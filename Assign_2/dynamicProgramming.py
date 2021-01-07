@@ -7,6 +7,9 @@ from Route import Route
 from RouteNode import RouteNode
 import pickle
 import operator
+import pandas as pd
+from pandas import ExcelWriter
+from math import floor
 
 
 def save_obj(obj, name ):
@@ -100,7 +103,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     # IMPLEMENT: assign node IATA, stage number and corresponding profit to currentNode (self.profit, self.nextNodeStage, self.nextNodeIATA)
                     if currentStage.stageNumber == len(stagesList)-1:
                         currentNode.profit = 0
-                        currentNode.cargo  = c
+                        currentNode.cargo  = 0
                     else:
                         profit = max(verticeProfit.values())
                         nextNodeIATA = max(verticeProfit.items(), key=operator.itemgetter(1))[0]
@@ -162,3 +165,35 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)
 
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
+
+
+save_obj(routesList,"routesList")
+
+with ExcelWriter('routes.xlsx') as writer:
+    for i, rte in enumerate(routesList):
+        aircraftNumString = 'num' + str(i) + '_' + rte.aircraftType
+        df = pd.DataFrame(columns=['Departure Time', 'Route', 'Arrival Time', 'Cargo', 'Profit'])
+
+        rteNodesList = rte.routeNodesList
+
+        for i in range(len(rteNodesList) - 1):
+            origin = rteNodesList[i].IATA
+            destination = rteNodesList[i + 1].IATA
+            if origin != destination:
+                depTime = rteNodesList[i].time
+                depTimeDays = floor(depTime/24)
+                depTimeHours = int(depTime - depTimeDays*24)
+                depTimeMinutes = round(((depTime - depTimeDays*24) % 1) * 60)
+                depTimeString = 'Day ' + str(depTimeDays) + ' - ' + str(depTimeHours) + ' h ' + str(depTimeMinutes)
+
+                arrTime = rteNodesList[i + 1].time
+                arrTimeDays = floor(arrTime/24)
+                arrTimeHours = int(arrTime - arrTimeDays*24)
+                arrTimeMinutes = round(((arrTime - arrTimeDays*24) % 1) * 60)
+                arrTimeString = 'Day ' + str(arrTimeDays) + ' - ' + str(arrTimeHours) + ' h ' + str(arrTimeMinutes)
+
+                cargo = rteNodesList[i].cargo
+                profit = rteNodesList[i].profitLeft - rteNodesList[i + 1].profitLeft
+                df.loc[i] = [depTimeString, origin+' - '+destination, arrTimeString, cargo, profit]
+
+        df.to_excel(writer, sheet_name = aircraftNumString, index= False)

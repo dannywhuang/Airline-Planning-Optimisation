@@ -262,10 +262,10 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                             else:
                                 binErrorProfit[currentNode] = [binErrorProfit[currentNode], errorFlightProfit]
         
-        if len(binErrorProfit) >= 1:
-            print(f'To much demand is taken at the following node, resulting in the following profit-loss: {binErrorProfit}')
-        else:
-            print('No errorenous demand present')
+    if len(binErrorProfit) >= 1:
+        print(f'To much demand is taken at the following node, resulting in the following profit-loss: {binErrorProfit}')
+    else:
+        print('No errorenous demand present')
                     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 

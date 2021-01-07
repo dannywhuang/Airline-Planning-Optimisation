@@ -60,7 +60,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 for IATA, currentNode in currentStage.nodesList.items():
 
                     origin = airportsList[IATA]
-                    currentAirportDemand = demand.loc[Demand.data['From'] == IATA]
+                    currentAirportDemand = demand.loc[demand['From'] == IATA]
                     
                     verticeProfit = {}
                     verticeCargo  = {}
@@ -174,35 +174,34 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
             currentBin = currentNode.binNumber
             currentStageNumber = currentNode.stageNumber
             currentCargo = currentNode.cargo
+            indices_OD = (demand['From'] == currentNode.IATA ) & (demand['To'] == nextNode.IATA )
 
-            origDestDemand  = demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].drop(['From','To'], axis=1)
+            origDestDemand  = demand.loc[indices_OD].drop(['From','To'], axis=1)
 
             binFlightDemand = float( origDestDemand.iloc[0, currentBin] )
             prevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-1] )
             prevPrevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-2] )
 
             newBinFlightDemand = binFlightDemand - currentCargo
-            demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].iloc[0,2+currentBin] = newBinFlightDemand
+            demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
             
             if newBinFlightDemand < 0:
                 newPrevBinFlightDemand = prevBinFlightDemand - abs(newBinFlightDemand)
                 newBinFlightDemand = 0
 
-                demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].iloc[0,2+currentBin] = newBinFlightDemand
-                demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].iloc[0,2+currentBin-1] = newPrevBinFlightDemand
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
 
                 if newPrevBinFlightDemand < 0:
                     newPrevPrevBinFlightDemand = prevPrevBinFlightDemand - abs(newPrevBinFlightDemand)
                     newPrevBinFlightDemand = 0
 
-                    demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].iloc[0,2+currentBin-1] = newPrevBinFlightDemand
-                    demand.loc[ (Demand.data['From'] == currentNode.IATA ) & (Demand.data['To'] == nextNode.IATA ) ].iloc[0,2+currentBin-2] = newPrevPrevBinFlightDemand 
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-2], newPrevPrevBinFlightDemand) 
                 
                     if newPrevPrevBinFlightDemand < 0:
                         ... # zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
                         print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentBin}')
-                    
-
     
         
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet

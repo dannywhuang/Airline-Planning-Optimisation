@@ -37,7 +37,7 @@ BINS_12PM_4PM = [3, 9, 15, 21, 27]
 BINS_4PM_8PM = [4, 10, 16, 22, 28]
 BINS_8PM_12AM = [5, 11, 17, 23, 29]
 
-STAGE_RESOLUTION = 6  # 6 minutes
+STAGE_RESOLUTION = 60  # 6 minutes
 DEMAND_CAPTURE_PREVIOUS = 0.20  # 20% of previous two bins can capture
 TOTAL_HOURS = 24
 

@@ -205,7 +205,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
-save_obj(routesList,"routesList")
+save_obj(routesList, "routesList")
 
 with ExcelWriter('output/routes.xlsx') as writer:
     for i, rte in enumerate(routesList):

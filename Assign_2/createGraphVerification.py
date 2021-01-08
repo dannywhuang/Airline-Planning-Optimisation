@@ -12,14 +12,14 @@ from Fleet import Fleet
 from Demand import Demand
 from Stage import Stage
 
-Airports = Airports('airports.xlsx')
-Demand = Demand('demand.xlsx')
-Fleet = Fleet('fleet.xlsx')
+Airports = Airports('airportsVerification.xlsx')
+Demand = Demand('demandVerification.xlsx')
+Fleet = Fleet('fleetVerification.xlsx')
 
 airportsList = Airports.airportsList
 
-STAGE_RESOLUTION = 6 # 6 minutes
-TOTAL_HOURS = 120
+STAGE_RESOLUTION = 6 # minutes
+TOTAL_HOURS = None# fill in how many hours
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
@@ -89,4 +89,4 @@ for type, aircraft in Fleet.aircraftList.items():
                     currentNode.vertices[destinationAirport.IATA] = nextStageNumber
 
     # save a stagesList for each aircraft type
-    save_obj(stagesList, type)
+    save_obj(stagesList, type+'Verification')

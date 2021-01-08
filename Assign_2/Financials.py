@@ -5,9 +5,9 @@ class Financials:
     YIELD_PER_RTK = 0.26  # euros
     FUEL_COST = 1.42  # 1.42 usd/gallon in 2020 from ass. 1
 
-    def __init__(self):
-        self.airports = Airports()
-        self.fleet = Fleet()
+    def __init__(self, airportsFileName, fleetFileName):
+        self.airports = Airports(airportsFileName)
+        self.fleet = Fleet(fleetFileName)
 
     def calculateRevenue(self, airport1, airport2, flow):
         dist = self.airports.calculateDistance(airport1, airport2)

@@ -7,8 +7,8 @@ from Airport import Airport
 class Airports:
     HUB = 'CDG'
 
-    def __init__(self):
-        self.data = pd.read_excel('data/airports.xlsx',index_col=0)
+    def __init__(self, fileName):
+        self.data = pd.read_excel('data/' + fileName,index_col=0)
         self.IATAList = np.array(self.data.columns)
         self.airportsList = {}
         for i in self.IATAList:

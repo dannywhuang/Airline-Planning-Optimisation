@@ -26,9 +26,9 @@ for i in range(len(routes[0].routeNodesList)-1):
 
 
 
-Fleet = Fleet()
-airports = Airports()
-Financials = Financials()
+Fleet = Fleet('fleet.xlsx')
+airports = Airports('airports.xlsx')
+Financials = Financials('airports.xlsx','fleet.xlsx')
 
 ask_ac = {}
 time_ac = {}

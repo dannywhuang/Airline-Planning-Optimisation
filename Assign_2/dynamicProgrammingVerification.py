@@ -49,7 +49,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
             print("\n Aircraft type:", type)
-            stagesList = load_obj(type)
+            stagesList = load_obj(type + 'Verification')
             stagesListList[type] = stagesList
 
             print("Dynamic programming starts now ...")

@@ -4,9 +4,13 @@ from Financials import Financials
 from KPI_store import KPI_store
 import pickle
 
-Fleet = Fleet()
-airports = Airports()
-Financials = Financials()
+
+
+
+Fleet = Fleet('fleet.xlsx')
+airports = Airports('airports.xlsx')
+Financials = Financials('airports.xlsx','fleet.xlsx')
+
 
 ask_ac = {}
 time_ac = {}

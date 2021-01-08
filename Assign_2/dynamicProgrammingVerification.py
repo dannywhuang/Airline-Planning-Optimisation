@@ -20,10 +20,10 @@ def load_obj(name ):
     with open('obj/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
-Airports = Airports('airports.xlsx')
-Demand = Demand('demand.xlsx')
-Fleet = Fleet('fleet.xlsx')
-Financials = Financials('airports.xlsx','fleet.xlsx')
+Airports = Airports('airportsVerification.xlsx')
+Demand = Demand('demandVerification.xlsx')
+Fleet = Fleet('fleetVerification.xlsx')
+Financials = Financials('airportsVerification.xlsx','fleetVerification.xlsx')
 
 airportsList = Airports.airportsList
 demand = Demand.data
@@ -35,9 +35,9 @@ BINS_12PM_4PM = [3,9,15,21,27]
 BINS_4PM_8PM = [4,10,16,22,28]
 BINS_8PM_12AM = [5,11,17,23,29]
 
-STAGE_RESOLUTION = 6 # 6 minutes
+STAGE_RESOLUTION = 6
 DEMAND_CAPTURE_PREVIOUS = 0.20 # 20% of previous two bins can capture
-TOTAL_HOURS = 120
+TOTAL_HOURS = None # fill in hours total
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
@@ -49,7 +49,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
             print("\n Aircraft type:", type)
-            stagesList = load_obj(type)
+            stagesList = load_obj(type + 'Verification')
             stagesListList[type] = stagesList
 
             print("Dynamic programming starts now ...")
@@ -165,113 +165,49 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
 
     # IMPLEMENT: remove demand transported
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)
-    routeFlights   = routeToBeAdded.routeNodesList
-    usedDemand     = demand
-    binFlightTime  = {}
-    binCargo       = {}
-    binErrorProfit = {}
-
-    # iterate over each node of the found aircraft route
+    routeFlights = routeToBeAdded.routeNodesList
     for i in range(len(routeFlights)-1):
         currentNode = routeFlights[i]
         nextNode    = routeFlights[i+1]
 
-        # Enter loop if there is cargo transported at current node
         if currentNode.cargo != 0:
-            if currentNode.binNumber not in binFlightTime:
-                binFlightTime[currentNode.binNumber] = [currentNode.IATA, nextNode.IATA]
-            else:
-                binFlightTime[currentNode.binNumber] = [binFlightTime[currentNode.binNumber],[currentNode.IATA, nextNode.IATA]]
+            currentBin = currentNode.binNumber
+            currentStageNumber = currentNode.stageNumber
+            currentCargo = currentNode.cargo
+            indices_OD = (demand['From'] == currentNode.IATA ) & (demand['To'] == nextNode.IATA )
 
-            binCargo_Node = {}
+            origDestDemand  = demand.loc[indices_OD].drop(['From','To'], axis=1)
 
-            # Obtain demand data
-            indices_OD     = (usedDemand['From'] == currentNode.IATA) & (usedDemand['To'] == nextNode.IATA)
-            origDestDemand = usedDemand.loc[indices_OD].drop(['From','To'], axis=1)
+            binFlightDemand = float( origDestDemand.iloc[0, currentBin] )
+            prevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-1] )
+            prevPrevBinFlightDemand = float( origDestDemand.iloc[0, currentBin-2] )
 
-            binFlightDemand         = float(origDestDemand.iloc[0, currentNode.binNumber])
-            prevBinFlightDemand     = float(origDestDemand.iloc[0, currentNode.binNumber-1])
-            prevPrevBinFlightDemand = float(origDestDemand.iloc[0, currentNode.binNumber-2])
-
-            # remove flight demand from current flight bin demand
-            newBinFlightDemand     = binFlightDemand - currentNode.cargo
-            demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentNode.binNumber], max(0,newBinFlightDemand)) 
-            binCargo_Node[currentNode.binNumber] = binFlightDemand - max(0,newBinFlightDemand)
+            newBinFlightDemand = binFlightDemand - currentCargo
+            demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
             
-            if currentNode.cargo > binFlightDemand:
-                # remove flight demand from -1 flight bin demand
+            if newBinFlightDemand < 0:
                 newPrevBinFlightDemand = prevBinFlightDemand - abs(newBinFlightDemand)
-                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentNode.binNumber-1], max(0,newPrevBinFlightDemand))
-                binCargo_Node[currentNode.binNumber-1] = prevBinFlightDemand - max(0,newPrevBinFlightDemand)
+                newBinFlightDemand = 0
 
-                if abs(newBinFlightDemand) > prevBinFlightDemand:
-                    # remove flight demand from -2 flight bin demand
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin], newBinFlightDemand) 
+                demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
+
+                if newPrevBinFlightDemand < 0:
                     newPrevPrevBinFlightDemand = prevPrevBinFlightDemand - abs(newPrevBinFlightDemand)
-                    demand.loc[indices_OD]     = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentNode.binNumber-2], max(0,newPrevPrevBinFlightDemand))
-                    binCargo_Node[currentNode.binNumber-2] = prevPrevBinFlightDemand - max(0,newPrevPrevBinFlightDemand)
+                    newPrevBinFlightDemand = 0
+
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-1], newPrevBinFlightDemand) 
+                    demand.loc[indices_OD] = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentBin-2], newPrevPrevBinFlightDemand) 
                 
-                    if abs(newPrevBinFlightDemand) > prevPrevBinFlightDemand:
-                        # Zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
-                        print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentNode.binNumber}')
-            
-            binCargo[currentNode.binNumber]  = binCargo_Node
-            
-            # Check condition that we transport more than the demand we have on the flight one bin prior to the current flight
-            if currentNode.binNumber-1 in binFlightTime:    # Is there a flight in the previous bin?
-                if [currentNode.IATA, nextNode.IATA] == binFlightTime[currentNode.binNumber-1]: # Does that flight have the same origin-destination as the current flight?
-                    if currentNode.binNumber-1 in binCargo[currentNode.binNumber]:  # Does the current flight carry demand from the previous bin?
-                        oldPrevBinDemand = usedDemand.loc[(usedDemand['From'] == binFlightTime[currentNode.binNumber-1][0]) & (usedDemand['To'] == binFlightTime[currentNode.binNumber-1][1])].iloc[0,2+currentNode.binNumber-1]    # What was the original demand at the previous bin?
-                        if binCargo[currentNode.binNumber-1][currentNode.binNumber-1] == oldPrevBinDemand:  # Did the previous flight with the same OD carry all available demand?
-                            # obtain the cargo flow that cannot be transported
-                            prevErrorCargo = binCargo[currentNode.binNumber][currentNode.binNumber-1]
-
-                            origin      = binFlightTime[currentNode.binNumber-1][0]     # errorenous flight
-                            destination = binFlightTime[currentNode.binNumber-1][1]     # errorenous flight
-                            
-                            # compute the profit that has to be removed for the errorenous flight
-                            flightRevenue = Financials.calculateRevenue(airportsList[origin], airportsList[destination], prevErrorCargo)
-                            flightCost    = Financials.calculateCost(airportsList[origin], airportsList[destination], highestAircraftProfitType)
-                            errorFlightProfit = flightRevenue - flightCost
-
-                            # Add flight note and corresponding profit that has to be removed
-                            if currentNode.binNumber not in binErrorProfit:
-                                binErrorProfit[currentNode] = errorFlightProfit
-                            else:
-                                binErrorProfit[currentNode] = [binErrorProfit[currentNode], errorFlightProfit]
-
-            # check condition that we transport more than the demand we have on the flight two bins prior to the current flight
-            if currentNode.binNumber-2 in binFlightTime:    # Is there a flight in the pre previous bin?
-                if [currentNode.IATA, nextNode.IATA] == binFlightTime[currentNode.binNumber-2]: # Does that flight have the same origin-destination as the current flight?
-                    if currentNode.binNumber-2 in binCargo[currentNode.binNumber]:  # Does the current flight carry demand from the pre previous bin?
-                        oldPrevPrevBinDemand = usedDemand.loc[(usedDemand['From'] == binFlightTime[currentNode.binNumber-2][0]) & (usedDemand['To'] == binFlightTime[currentNode.binNumber-2][1])].iloc[0,2+currentNode.binNumber-2]    # What was the original demand at the previous bin?
-                        if binCargo[currentNode.binNumber-2][currentNode.binNumber-2] == oldPrevPrevBinDemand:  # Did the pre previous flight with the same OD carry all available demand?
-                            # obtain the cargo flow that cannot be transported
-                            prevPrevErrorCargo = binCargo[currentNode.binNumber][currentNode.binNumber-2]
-
-                            origin      = binFlightTime[currentNode.binNumber-1][0]     # errorenous flight
-                            destination = binFlightTime[currentNode.binNumber-1][1]     # errorenous flight
-                            
-                            # compute the profit that has to be removed for the errorenous flight
-                            flightRevenue = Financials.calculateRevenue(airportsList[origin], airportsList[destination], prevPrevErrorCargo)
-                            flightCost    = Financials.calculateCost(airportsList[origin], airportsList[destination], highestAircraftProfitType)
-                            errorFlightProfit = flightRevenue - flightCost
-
-                            # Add flight note and corresponding profit that has to be removed
-                            if currentNode.binNumber not in binErrorProfit:
-                                binErrorProfit[currentNode] = errorFlightProfit
-                            else:
-                                binErrorProfit[currentNode] = [binErrorProfit[currentNode], errorFlightProfit]
-        
-    if len(binErrorProfit) >= 1:
-        print(f'To much demand is taken at the following node, resulting in the following profit-loss: {binErrorProfit}')
-    else:
-        print('No errorenous demand present')
-                    
+                    if newPrevPrevBinFlightDemand < 0:
+                        # ... # zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
+                        print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentBin}')
+    
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
-save_obj(routesList, "routesList")
+save_obj(routesList,"routesListVerification")
 
-with ExcelWriter('output/routes.xlsx') as writer:
+with ExcelWriter('output/routesVerification.xlsx') as writer:
     for i, rte in enumerate(routesList):
         aircraftNumString = 'num' + str(i) + '_' + rte.aircraftType
         df = pd.DataFrame(columns=['Departure Time', 'Route', 'Arrival Time', 'Cargo', 'Profit'])

@@ -166,7 +166,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     # IMPLEMENT: remove demand transported
     # IMPLEMENT: check if we do not transport more than the demand we have (the thing the lecturer talked about with the 20% demand)
     routeFlights   = routeToBeAdded.routeNodesList
-    usedDemand     = demand
+    usedDemand     = demand.copy()
     binFlightTime  = {}
     binCargo       = {}
     binErrorProfit = {}
@@ -214,16 +214,17 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                         # Zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
                         print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentNode.binNumber}')
             
-            binCargo[currentNode.binNumber]  = binCargo_Node
+            binCargo[currentNode.binNumber] = binCargo_Node
             
             # Check condition that we transport more than the demand we have on the flight one bin prior to the current flight
             if currentNode.binNumber-1 in binFlightTime:    # Is there a flight in the previous bin?
                 if [currentNode.IATA, nextNode.IATA] == binFlightTime[currentNode.binNumber-1]: # Does that flight have the same origin-destination as the current flight?
                     if currentNode.binNumber-1 in binCargo[currentNode.binNumber]:  # Does the current flight carry demand from the previous bin?
                         oldPrevBinDemand = usedDemand.loc[(usedDemand['From'] == binFlightTime[currentNode.binNumber-1][0]) & (usedDemand['To'] == binFlightTime[currentNode.binNumber-1][1])].iloc[0,2+currentNode.binNumber-1]    # What was the original demand at the previous bin?
-                        if binCargo[currentNode.binNumber-1][currentNode.binNumber-1] == oldPrevBinDemand:  # Did the previous flight with the same OD carry all available demand?
+                        totalPrevTransportedDemand = binCargo[currentNode.binNumber-1][currentNode.binNumber-1] + binCargo[currentNode.binNumber][currentNode.binNumber-1]  # How much demand is transported?
+                        if totalPrevTransportedDemand > oldPrevBinDemand:  # Has there been transported more demand than available?
                             # obtain the cargo flow that cannot be transported
-                            prevErrorCargo = binCargo[currentNode.binNumber][currentNode.binNumber-1]
+                            prevErrorCargo = abs(totalPrevTransportedDemand - oldPrevBinDemand)
 
                             origin      = binFlightTime[currentNode.binNumber-1][0]     # errorenous flight
                             destination = binFlightTime[currentNode.binNumber-1][1]     # errorenous flight
@@ -244,9 +245,10 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 if [currentNode.IATA, nextNode.IATA] == binFlightTime[currentNode.binNumber-2]: # Does that flight have the same origin-destination as the current flight?
                     if currentNode.binNumber-2 in binCargo[currentNode.binNumber]:  # Does the current flight carry demand from the pre previous bin?
                         oldPrevPrevBinDemand = usedDemand.loc[(usedDemand['From'] == binFlightTime[currentNode.binNumber-2][0]) & (usedDemand['To'] == binFlightTime[currentNode.binNumber-2][1])].iloc[0,2+currentNode.binNumber-2]    # What was the original demand at the previous bin?
-                        if binCargo[currentNode.binNumber-2][currentNode.binNumber-2] == oldPrevPrevBinDemand:  # Did the pre previous flight with the same OD carry all available demand?
+                        totalPrevPrevTransportedDemand = binCargo[currentNode.binNumber-2][currentNode.binNumber-2] + binCargo[currentNode.binNumber][currentNode.binNumber-2]  # How much demand is transported?
+                        if totalPrevPrevTransportedDemand > oldPrevPrevBinDemand:  # Has there been transported more demand than available?
                             # obtain the cargo flow that cannot be transported
-                            prevPrevErrorCargo = binCargo[currentNode.binNumber][currentNode.binNumber-2]
+                            prevPrevErrorCargo = abs(totalPrevPrevTransportedDemand - oldPrevPrevBinDemand)
 
                             origin      = binFlightTime[currentNode.binNumber-1][0]     # errorenous flight
                             destination = binFlightTime[currentNode.binNumber-1][1]     # errorenous flight
@@ -263,9 +265,9 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                                 binErrorProfit[currentNode] = [binErrorProfit[currentNode], errorFlightProfit]
         
     if len(binErrorProfit) >= 1:
-        print(f'To much demand is taken at the following node, resulting in the following profit-loss: {binErrorProfit}')
+        print(f'To much demand is transported on the flight in the following bin, resulting in the following reduction in profit: {binErrorProfit}')
     else:
-        print('No errorenous demand present')
+        print('No errorenous cargo flow present')
                     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
@@ -283,13 +285,13 @@ with ExcelWriter('output/routes.xlsx') as writer:
             destination = rteNodesList[i + 1].IATA
             if origin != destination:
                 depTime = rteNodesList[i].time
-                depTimeDays = floor(depTime/24)
+                depTimeDays = floor(depTime/24) + 1
                 depTimeHours = int(depTime - depTimeDays*24)
                 depTimeMinutes = round(((depTime - depTimeDays*24) % 1) * 60)
                 depTimeString = 'Day ' + str(depTimeDays) + ' - ' + str(depTimeHours) + ' h ' + str(depTimeMinutes)
 
                 arrTime = rteNodesList[i + 1].time
-                arrTimeDays = floor(arrTime/24)
+                arrTimeDays = floor(arrTime/24) + 1
                 arrTimeHours = int(arrTime - arrTimeDays*24)
                 arrTimeMinutes = round(((arrTime - arrTimeDays*24) % 1) * 60)
                 arrTimeString = 'Day ' + str(arrTimeDays) + ' - ' + str(arrTimeHours) + ' h ' + str(arrTimeMinutes)

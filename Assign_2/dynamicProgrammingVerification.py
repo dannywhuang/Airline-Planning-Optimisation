@@ -20,10 +20,10 @@ def load_obj(name ):
     with open('obj/' + name + '.pkl', 'rb') as f:
         return pickle.load(f)
 
-Airports = Airports('airports.xlsx')
-Demand = Demand('demand.xlsx')
-Fleet = Fleet('fleet.xlsx')
-Financials = Financials('airports.xlsx','fleet.xlsx')
+Airports = Airports('airportsVerification.xlsx')
+Demand = Demand('demandVerification.xlsx')
+Fleet = Fleet('fleetVerification.xlsx')
+Financials = Financials('airportsVerification.xlsx','fleetVerification.xlsx')
 
 airportsList = Airports.airportsList
 demand = Demand.data
@@ -35,9 +35,9 @@ BINS_12PM_4PM = [3,9,15,21,27]
 BINS_4PM_8PM = [4,10,16,22,28]
 BINS_8PM_12AM = [5,11,17,23,29]
 
-STAGE_RESOLUTION = 6 # 6 minutes
+STAGE_RESOLUTION = 6
 DEMAND_CAPTURE_PREVIOUS = 0.20 # 20% of previous two bins can capture
-TOTAL_HOURS = 120
+TOTAL_HOURS = None # fill in hours total
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 
@@ -205,9 +205,9 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
-save_obj(routesList,"routesList")
+save_obj(routesList,"routesListVerification")
 
-with ExcelWriter('output/routes.xlsx') as writer:
+with ExcelWriter('output/routesVerification.xlsx') as writer:
     for i, rte in enumerate(routesList):
         aircraftNumString = 'num' + str(i) + '_' + rte.aircraftType
         df = pd.DataFrame(columns=['Departure Time', 'Route', 'Arrival Time', 'Cargo', 'Profit'])

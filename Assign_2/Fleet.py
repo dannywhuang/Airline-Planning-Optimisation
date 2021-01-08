@@ -2,8 +2,8 @@ import pandas as pd
 from Aircraft import Aircraft
 
 class Fleet:
-    def __init__(self):
-        self.data = pd.read_excel('data/fleet.xlsx', index_col=0, usecols='A:D')
+    def __init__(self, fileName):
+        self.data = pd.read_excel('data/' + fileName, index_col=0, usecols='A:D')
         self.amount = {}
         self.aircraftList = {}
         for i in self.data.columns:

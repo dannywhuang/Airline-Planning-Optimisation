@@ -5,62 +5,60 @@ from KPI_store import KPI_store
 import pickle
 
 
-def load_obj(name ):
-    with open('obj/' + name + '.pkl', 'rb') as f:
-        return pickle.load(f)
-
-
-routes = load_obj("routes")
-type  = routes[0].aircraftType
-
-print("AC type:", type)
-print('Time', '  origin', '  destination', ' cargo')
-
-for i in range(len(routes[0].routeNodesList)-1):
-    time   = routes[0].routeNodesList[i].time
-    cargo  = routes[0].routeNodesList[i].cargo
-    origin = routes[0].routeNodesList[i].IATA
-    destination = routes[0].routeNodesList[i+1].IATA
-    if origin != destination:
-        print(round(time, 1), '  ', origin, '   ', destination, "        ", cargo)
-
 
 
 Fleet = Fleet('fleet.xlsx')
 airports = Airports('airports.xlsx')
 Financials = Financials('airports.xlsx','fleet.xlsx')
 
+
 ask_ac = {}
 time_ac = {}
 KPI = {}
-KPI_ac = {}
 
-for type, aircraft in Fleet.aircraftList.items():
+
+def load_obj(name ):
+    with open('obj/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
+
+routes = load_obj("routesList")
+
+for ii, route in enumerate(routes):
+    KPI_ac = {}
     ask_sum = 0
     time_sum = 0
-    # array of airports (route)
-    list_routs = None
-    # cargo associated to each route
-    cargo_l = None
-
-
+    routeNodesList = route.routeNodesList
+    type = route.aircraftType
     flightCapacity = Fleet.aircraftList[type].capacity
-    # for i in range(len(list_routs)):
-    #     origin = i
-    #     destination = i+1
-    #     distance = airports.calculateDistance(origin, destination)
-    #     totalTravelTime = distance / aircraft.speed + aircraft.TAT / 60
-    #     cargo    = cargo_l(i)
-    #     RTK      = cargo/1000*distance
-    #     ASK      = flightCapacity*distance
-    #     flightRevenue = Financials.calculateRevenue(origin, destination, cargo)
-    #     flightCost = Financials.calculateCost(origin, destination, type) if origin != destination else 0
-    #     RASK       = ASK*flightRevenue
-    #     CASK       = ASK*flightCost
-    #     ask_sum+=ask_sum
-    #     time_sum+=time_sum
-    #     KPI_ac[origin,destination] = KPI_store(ASK,RTK, CASK, RASK)
-    # KPI[type]     = KPI_ac
-    # ask_ac[type]  = ask_sum
-    # time_ac[type] = time_sum
+    speed          = Fleet.aircraftList[type].speed
+    TAT            = Fleet.aircraftList[type].TAT
+
+    for i in range(len(routeNodesList) - 1):
+        origin = routeNodesList[i].IATA
+        destination = routeNodesList[i + 1].IATA
+        cargo       = routeNodesList[i].cargo
+        airportsList = airports.airportsList
+        origin_dat   = airportsList[origin]
+        destination_dat = airportsList[destination]
+        if origin != destination:
+                distance = airports.calculateDistance(origin_dat, destination_dat)
+                totalTravelTime = routeNodesList[i + 1].time - routeNodesList[i].time
+                #totalTravelTime = distance/speed + TAT/60
+                RTK        = cargo/1000*distance
+                ASK        = flightCapacity/1000*distance
+                flightRevenue = Financials.calculateRevenue(origin_dat, destination_dat, cargo)
+                flightCost = Financials.calculateCost(origin_dat, destination_dat, type)
+                profit     = flightRevenue-flightCost
+                RASK       = ASK*flightRevenue
+                CASK       = ASK*flightCost
+                ask_sum    = ask_sum + ASK
+                time_sum   = time_sum + totalTravelTime
+                KPI_ac[origin,destination] = KPI_store(ASK,RTK, CASK, RASK,profit)
+                #if ii == 3:
+                #    print(cargo)
+
+    KPI[ii,type]     = KPI_ac
+    ask_ac[ii,type]  = ask_sum
+    time_ac[ii,type] = time_sum
 

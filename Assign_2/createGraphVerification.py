@@ -19,7 +19,7 @@ Fleet = Fleet('fleetVerification.xlsx')
 airportsList = Airports.airportsList
 
 STAGE_RESOLUTION = 6 # minutes
-TOTAL_HOURS = None# fill in how many hours
+TOTAL_HOURS = 24# fill in how many hours
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
 

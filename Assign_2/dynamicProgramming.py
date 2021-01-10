@@ -48,7 +48,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
     stagesListList = {}
     for type, aircraft in Fleet.aircraftList.items():
         if Fleet.amount[type] > 0: # check if aircraft type has amount in fleet left
-            print("\n Aircraft type:", type)
+            print("\nAircraft type:", type)
             stagesList = load_obj(type)
             stagesListList[type] = stagesList
 
@@ -269,7 +269,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
-save_obj(routesList,"routesList")
+save_obj(routesList, "routesList")
 
 with ExcelWriter('output/routes.xlsx') as writer:
     for i, rte in enumerate(routesList):
@@ -283,16 +283,16 @@ with ExcelWriter('output/routes.xlsx') as writer:
             destination = rteNodesList[i + 1].IATA
             if origin != destination:
                 depTime = rteNodesList[i].time
-                depTimeDays = floor(depTime/24) + 1
+                depTimeDays = floor(depTime/24)
                 depTimeHours = int(depTime - depTimeDays*24)
                 depTimeMinutes = round(((depTime - depTimeDays*24) % 1) * 60)
-                depTimeString = 'Day ' + str(depTimeDays) + ' - ' + str(depTimeHours) + ' h ' + str(depTimeMinutes)
+                depTimeString = 'Day ' + str(depTimeDays + 1) + ' - ' + str(depTimeHours) + ' h ' + str(depTimeMinutes)
 
                 arrTime = rteNodesList[i + 1].time
-                arrTimeDays = floor(arrTime/24) + 1
+                arrTimeDays = floor(arrTime/24)
                 arrTimeHours = int(arrTime - arrTimeDays*24)
                 arrTimeMinutes = round(((arrTime - arrTimeDays*24) % 1) * 60)
-                arrTimeString = 'Day ' + str(arrTimeDays) + ' - ' + str(arrTimeHours) + ' h ' + str(arrTimeMinutes)
+                arrTimeString = 'Day ' + str(arrTimeDays + 1) + ' - ' + str(arrTimeHours) + ' h ' + str(arrTimeMinutes)
 
                 cargo = rteNodesList[i].cargo
                 profit = rteNodesList[i].profitLeft - rteNodesList[i + 1].profitLeft

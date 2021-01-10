@@ -50,11 +50,12 @@ for ii, route in enumerate(routes):
                 flightRevenue = Financials.calculateRevenue(origin_dat, destination_dat, cargo)
                 flightCost = Financials.calculateCost(origin_dat, destination_dat, type)
                 profit     = flightRevenue-flightCost
-                RASK       = ASK*flightRevenue
-                CASK       = ASK*flightCost
+                RASK       = flightRevenue/ASK
+                CASK       = flightCost/ASK
+                RRTK       = flightRevenue/RTK
                 ask_sum    = ask_sum + ASK
                 time_sum   = time_sum + totalTravelTime
-                KPI_ac[origin,destination] = KPI_store(ASK,RTK, CASK, RASK,profit)
+                KPI_ac[origin,destination] = KPI_store(ASK,RTK, CASK, RASK, RRTK,profit)
                 #if ii == 3:
                 #    print(cargo)
 

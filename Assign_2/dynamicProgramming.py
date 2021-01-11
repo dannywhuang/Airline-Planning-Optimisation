@@ -160,10 +160,6 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
         currentRouteStageCounter = currentRouteStageNode.nextNodeStage
         currentRouteNodeIATA = currentRouteStageNode.nextNodeIATA
 
-    # add Route to list of routes
-    routesList.append(routeToBeAdded)
-
-
     # IMPLEMENT: remove aircraft used from fleet
     Fleet.amount[highestAircraftProfitType] -= 1
 
@@ -182,6 +178,8 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
 
         # Enter loop if there is cargo transported at current node
         if currentNode.cargo != 0:
+            prevFlightDemand = demand.copy(deep=True)   # contains updated demand matrix, except for the flight in the current node
+
             if currentNode.binNumber not in binFlightTime:
                 binFlightTime[currentNode.binNumber] = [currentNode.IATA, nextNode.IATA]
             else:
@@ -222,10 +220,6 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     newPrevPrevBinFlightDemand = prevPrevBinFlightDemand - abs(newPrevBinFlightDemand)
                     demand.loc[indices_OD]     = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentNode.binNumber-2], max(0,newPrevPrevBinFlightDemand))
                     binCargo_Node[currentNode.binNumber-2] = prevPrevBinFlightDemand - max(0,newPrevPrevBinFlightDemand)
-                
-                    if abs(newPrevBinFlightDemand) > prevPrevBinFlightDemand:
-                        # Zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
-                        print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentNode.binNumber}')
 
             binCargo[currentNode.binNumber] = binCargo_Node
 
@@ -264,9 +258,12 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 else:
                     binErrorProfit[currentNode] = [binErrorProfit[currentNode], errorFlightProfit]
 
+    # add Route to list of routes
+    routesList.append(routeToBeAdded)
         
+      
     if len(binErrorProfit) >= 1:
-        print(f'To much demand is transported on the flight in the following bin, resulting in the following reduction in profit: {binErrorProfit}')
+        print(f'Too much demand is transported on the flight in bin {binErrorProfit.keys()}, resulting in the following reduction in profit: {binErrorProfit.values()}')
     else:
         print('No errorenous cargo flow present')
                     

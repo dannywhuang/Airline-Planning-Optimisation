@@ -238,7 +238,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                 print("Demand capture actually taken ", demandCaptureTaken)
                 print("More demand is captured than is actually available")
                 prevErrorCargo = demandCaptureTaken - demandCaptureAvailable
-                print("Flights " + currentNode.IATA + ' - ' +  nextNode.IATA + " departing at hour: " + currentNode.time )
+                print("Flights " + currentNode.IATA + ' - ' +  nextNode.IATA + " departing at hour: " + str(currentNode.time))
                 print("Cargo error is ", prevErrorCargo)
 
 
@@ -269,7 +269,7 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     
     # go back to start of while loop, check if aircraft left in fleet. stops if no aircraft left in fleet
 
-# save_obj(routesList, "routesList")
+save_obj(routesList, "routesList") # save routes list to perform KPI calculations
 
 with ExcelWriter('output/routes.xlsx') as writer:
     for i, rte in enumerate(routesList):

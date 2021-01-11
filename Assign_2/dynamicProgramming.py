@@ -206,10 +206,6 @@ while any(amountInFleet > 0 for amountInFleet in Fleet.amount.values()):
                     newPrevPrevBinFlightDemand = prevPrevBinFlightDemand - abs(newPrevBinFlightDemand)
                     demand.loc[indices_OD]     = demand.loc[indices_OD].replace(demand.loc[indices_OD].iloc[0,2+currentNode.binNumber-2], max(0,newPrevPrevBinFlightDemand))
                     binCargo_Node[currentNode.binNumber-2] = prevPrevBinFlightDemand - max(0,newPrevPrevBinFlightDemand)
-                
-                    # if abs(newPrevBinFlightDemand) > prevPrevBinFlightDemand:
-                    #     # Zou dit zijn wat de lecturer bedoelde met die uitzondering??? Dus dat je eindigt met een negatieve demand
-                    #     print(f'Het gaat mis hier bij vlucht {currentNode.IATA} naar {nextNode.IATA}, bij bin {currentNode.binNumber}')
             
             binCargo[currentNode.binNumber] = binCargo_Node
 

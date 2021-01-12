@@ -18,7 +18,7 @@ Fleet = Fleet('fleetVerification.xlsx')
 
 airportsList = Airports.airportsList
 
-STAGE_RESOLUTION = 6 # minutes
+STAGE_RESOLUTION = 60 # minutes
 TOTAL_HOURS = 24# fill in how many hours
 
 numberOfStages = int(TOTAL_HOURS*60 / STAGE_RESOLUTION + 1)
@@ -36,7 +36,7 @@ for type, aircraft in Fleet.aircraftList.items():
     print("Creating stages and nodes...")
     # create other stages
     for i in range(1, numberOfStages):
-        stageTime = TOTAL_HOURS-i*0.1
+        stageTime = TOTAL_HOURS-i*(STAGE_RESOLUTION/60)
 
         stageNumber = numberOfStages - i - 1
         newStage = Stage(stageTime, stageNumber)
